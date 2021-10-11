@@ -4,6 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlacesModule } from './places/places.module';
+import { Place } from './places/entities/place.entity';
+import { UsersModule } from './users/users.module';
+import { CommonModule } from './common/common.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -27,13 +31,15 @@ import { PlacesModule } from './places/places.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      // entities: [],
+      entities: [User],
       synchronize: true,
+      logging: true,
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
     }),
-    PlacesModule,
+    UsersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
