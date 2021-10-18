@@ -10,6 +10,8 @@ import { LoginInput, LoginOutput } from './dto/login.dto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from 'src/jwt/jwt.service';
+import { EditProfileInput, EditProfileOutput } from './dto/edit-profile.dto';
+import { UserProfileOutput } from './dto/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -78,7 +80,38 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<User> {
-    return this.users.findOne({ id });
+  async findById(id: number): Promise<UserProfileOutput> {
+    try {
+      const user = await this.users.findOne({ id });
+      return {
+        ok: true,
+        user,
+      };
+    } catch {
+      return { ok: false, error: 'User not found' };
+    }
+  }
+
+  async editProfile(
+    userId: number,
+    { email, password }: EditProfileInput,
+  ): Promise<EditProfileOutput> {
+    try {
+      //@BeforeUpdate for hashing password
+      //triggered when you updated a specific entity
+      // this.users.update(userId, { ...editProfileInput });
+      //not updating entity. sending query to the DB
+      const user = await this.users.findOne(userId);
+      if (email) {
+        user.email = email;
+      }
+      if (password) {
+        user.password = password;
+      }
+      this.users.save(user);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Could not edit' };
+    }
   }
 }
