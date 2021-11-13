@@ -1,11 +1,19 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import * as bcrypt from 'bcrypt';
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+} from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
-import { IsEmail, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsString } from 'class-validator';
+import { Place } from 'src/places/entities/place.entity';
 
-@InputType({ isAbstract: true })
+@InputType('UserInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class User extends CoreEntity {
@@ -20,8 +28,14 @@ export class User extends CoreEntity {
   password: string;
 
   @Column({ default: false })
+  @IsBoolean()
   @Field((type) => Boolean)
   verified: boolean;
+
+  @Field((type) => [Place])
+  @ManyToMany((type) => Place, (place) => place.users, { cascade: true })
+  @JoinTable()
+  places: Place[];
 
   @BeforeInsert()
   @BeforeUpdate()

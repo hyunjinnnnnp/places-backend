@@ -1,8 +1,8 @@
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
-import { CreatePlaceDto } from './create-place.dto';
+import { CreatePlaceInput } from './create-place.dto';
 
 @InputType()
-class UpdatePlaceInputType extends PartialType(CreatePlaceDto) {}
+class UpdatePlaceInputType extends PartialType(CreatePlaceInput) {}
 
 @InputType()
 export class UpdatePlaceDto {

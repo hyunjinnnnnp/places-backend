@@ -1,5 +1,9 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CreatePlaceDto } from './dtos/create-place.dto';
+import { AuthUser } from 'src/auth/auth-user.decorator';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { User } from 'src/users/entities/user.entity';
+import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { UpdatePlaceDto } from './dtos/update-place.dto';
 import { Place } from './entities/place.entity';
 import { PlacesService } from './places.service';
@@ -12,27 +16,12 @@ export class PlacesResolver {
     return this.placesService.getAll();
   }
 
-  @Mutation((returns) => Boolean)
-  async createPlace(
-    @Args('input') createPlaceDto: CreatePlaceDto,
-  ): Promise<boolean> {
-    try {
-      await this.placesService.createPlace(createPlaceDto);
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
-    }
-  }
-
-  @Mutation((returns) => Boolean)
-  async updatePlace(@Args('input') updatePlaceDto: UpdatePlaceDto) {
-    try {
-      await this.placesService.updatePlace(updatePlaceDto);
-      return true;
-    } catch (e) {
-      console.log(e);
-      return false;
-    }
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => CreatePlaceOutput)
+  createPlace(
+    @AuthUser() authUser: User,
+    @Args('input') createPlaceInput: CreatePlaceInput,
+  ): Promise<CreatePlaceOutput> {
+    return this.placesService.createPlace(authUser.id, createPlaceInput);
   }
 }

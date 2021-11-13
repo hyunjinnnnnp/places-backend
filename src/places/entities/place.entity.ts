@@ -1,15 +1,14 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { IsBoolean, IsString } from 'class-validator';
+import { CoreEntity } from 'src/common/entities/core.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { Category } from './category.entity';
 
-@InputType({ isAbstract: true })
+@InputType('PlacesInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
-export class Place {
-  @PrimaryGeneratedColumn()
-  @Field((type) => Int)
-  id: number;
-
+export class Place extends CoreEntity {
   @Field((type) => String)
   @Column()
   @IsString()
@@ -20,27 +19,24 @@ export class Place {
   @IsString()
   address: string;
 
-  @Field((type) => String, { nullable: true })
-  @Column({ nullable: true })
-  @IsOptional()
+  @Field((type) => String)
+  @Column()
   @IsString()
-  phone?: string;
+  coverImg: string;
 
-  @Field((type) => String, { nullable: true })
-  @Column({ nullable: true })
-  @IsOptional()
-  @IsString()
-  info?: string;
-
-  @Field((type) => String, { nullable: true })
-  @Column({ nullable: true })
-  @IsOptional()
-  @IsString()
-  categoryName?: string;
-
-  @Field((type) => Boolean, { defaultValue: false })
-  @Column({ default: false, nullable: true })
-  @IsOptional()
+  @Field((type) => Boolean)
+  @Column({ default: false })
   @IsBoolean()
-  isChecked: boolean;
+  isVisited: boolean;
+
+  @Field((type) => Category, { nullable: true })
+  @ManyToOne((type) => Category, (category) => category.places, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  category?: Category;
+
+  @Field((type) => [User])
+  @ManyToMany((type) => User, (user) => user.places)
+  users: User[];
 }

@@ -11,13 +11,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlacesModule } from './places/places.module';
 import { Place } from './places/entities/place.entity';
 import { UsersModule } from './users/users.module';
-import { CommonModule } from './common/common.module';
 import { User } from './users/entities/user.entity';
 import { JwtModule } from './jwt/jwt.module';
 import { jwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
+import { Category } from './places/entities/category.entity';
 
 @Module({
   imports: [
@@ -47,7 +47,7 @@ import { MailModule } from './mail/mail.module';
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User, Verification],
+      entities: [User, Verification, Place, Category],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -56,13 +56,14 @@ import { MailModule } from './mail/mail.module';
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY,
     }),
-    UsersModule,
-    AuthModule,
     MailModule.forRoot({
       apiKey: process.env.MAILGUN_API_KEY,
       domain: process.env.MAILGUN_DOMAIN_NAME,
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
+    AuthModule,
+    UsersModule,
+    PlacesModule,
   ],
   controllers: [],
   providers: [],

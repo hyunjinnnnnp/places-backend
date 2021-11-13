@@ -1,5 +1,16 @@
-import { InputType, OmitType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
+import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Place } from '../entities/place.entity';
 
 @InputType()
-export class CreatePlaceDto extends OmitType(Place, ['id']) {}
+export class CreatePlaceInput extends PickType(Place, [
+  'name',
+  'address',
+  'coverImg',
+]) {}
+
+@ObjectType()
+export class CreatePlaceOutput extends CoreOutput {
+  @Field((type) => Place, { nullable: true })
+  place?: Place;
+}
