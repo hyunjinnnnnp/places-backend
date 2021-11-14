@@ -2,7 +2,7 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 import { Category } from './category.entity';
 
 @InputType('PlacesInputType', { isAbstract: true })
@@ -37,6 +37,7 @@ export class Place extends CoreEntity {
   category?: Category;
 
   @Field((type) => [User])
-  @ManyToMany((type) => User, (user) => user.places)
+  @ManyToMany((type) => User, (user) => user.places, { cascade: true })
+  @JoinTable()
   users: User[];
 }

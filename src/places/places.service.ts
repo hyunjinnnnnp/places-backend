@@ -16,14 +16,17 @@ export class PlacesService {
     return this.places.find();
   }
   async createPlace(
-    userId: number,
+    authUser: User,
     createPlaceInput: CreatePlaceInput,
   ): Promise<CreatePlaceOutput> {
     try {
       const place = this.places.create(createPlaceInput);
+      place.users = [authUser];
       await this.places.save(place);
+
       return { ok: true, place };
-    } catch {
+    } catch (error) {
+      console.log(error);
       return { ok: false, error: 'Could not create' };
     }
   }

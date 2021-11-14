@@ -33,8 +33,7 @@ export class User extends CoreEntity {
   verified: boolean;
 
   @Field((type) => [Place])
-  @ManyToMany((type) => Place, (place) => place.users, { cascade: true })
-  @JoinTable()
+  @ManyToMany((type) => Place, (place) => place.users)
   places: Place[];
 
   @BeforeInsert()

@@ -22,6 +22,6 @@ export class PlacesResolver {
     @AuthUser() authUser: User,
     @Args('input') createPlaceInput: CreatePlaceInput,
   ): Promise<CreatePlaceOutput> {
-    return this.placesService.createPlace(authUser.id, createPlaceInput);
+    return this.placesService.createPlace(authUser, createPlaceInput);
   }
 }
