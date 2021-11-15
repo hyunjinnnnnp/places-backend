@@ -1,40 +1,35 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import * as bcrypt from 'bcrypt';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsString } from 'class-validator';
-import { Place } from 'src/places/entities/place.entity';
+import { Relation } from 'src/common/entities/relation.entity';
 
 @InputType('UserInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class User extends CoreEntity {
-  @Column()
   @Field((type) => String)
+  @Column()
   @IsEmail()
   email: string;
 
-  @Column({ select: false })
   @Field((type) => String)
+  @Column({ select: false })
   @IsString()
   password: string;
 
+  @Field((type) => Boolean)
   @Column({ default: false })
   @IsBoolean()
-  @Field((type) => Boolean)
   verified: boolean;
 
-  @Field((type) => [Place])
-  @ManyToMany((type) => Place, (place) => place.users)
-  places: Place[];
+  @Field((type) => [Relation], { nullable: true })
+  @OneToMany((type) => Relation, (relation) => relation.user, {
+    nullable: true,
+  })
+  relations?: Relation[];
 
   @BeforeInsert()
   @BeforeUpdate()

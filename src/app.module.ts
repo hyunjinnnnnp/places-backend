@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 import { Category } from './places/entities/category.entity';
+import { Relation } from './common/entities/relation.entity';
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import { Category } from './places/entities/category.entity';
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User, Verification, Place, Category],
+      entities: [User, Verification, Place, Category, Relation],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
