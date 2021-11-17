@@ -52,23 +52,31 @@ export class PlaceUserRelationsService {
     createRelationInput: CreateRelationInput,
   ): Promise<CreateRelationOutput> {
     try {
-      const user = await this.users.findOne(createRelationInput.userId);
+      const { userId, placeId } = createRelationInput;
+      const user = await this.users.findOne(userId);
       if (!user) {
         return {
           ok: false,
-          error: 'User not found',
+          error: 'User id not found',
         };
       }
-      const place = await this.places.findOne(createRelationInput.placeId);
+      const place = await this.places.findOne(placeId);
       if (!place) {
         return {
           ok: false,
-          error: 'Place not found',
+          error: 'Place id not found',
         };
       }
-      const relation = this.relations.create(createRelationInput);
-      await this.relations.save(relation);
-      return { ok: true, relation };
+      const relation = await this.relations.findOne({
+        userId,
+        placeId,
+      });
+      if (relation) {
+        return { ok: false, error: 'relation already exists' };
+      }
+      const newRelation = this.relations.create(createRelationInput);
+      await this.relations.save(newRelation);
+      return { ok: true, relation: newRelation };
     } catch {
       return { ok: false, error: 'Could not create' };
     }
@@ -79,9 +87,8 @@ export class PlaceUserRelationsService {
     editRelationInput: EditRelationInput,
   ): Promise<EditRelationOutput> {
     try {
-      const relation = await this.relations.findOne(
-        editRelationInput.relationId,
-      );
+      const { relationId } = editRelationInput;
+      const relation = await this.relations.findOne(relationId);
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
@@ -89,7 +96,7 @@ export class PlaceUserRelationsService {
         return { ok: false, error: "Could not edit somebody else's relation" };
       }
       await this.relations.save({
-        id: editRelationInput.relationId,
+        id: relationId,
         ...editRelationInput,
       });
       return {

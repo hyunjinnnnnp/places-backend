@@ -5,7 +5,10 @@ import { Repository } from 'typeorm';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
-import { GetAllPlacesOutput } from './dtos/get-all-places.dto';
+import {
+  GetAllPlacesInput,
+  GetAllPlacesOutput,
+} from './dtos/get-all-places.dto';
 import { Place } from './entities/place.entity';
 
 @Injectable()
@@ -16,13 +19,16 @@ export class PlacesService {
     private readonly relations: Repository<PlaceUserRelation>,
   ) {}
 
-  async allPlaces(): Promise<GetAllPlacesOutput> {
+  async getAllPlaces({ page }: GetAllPlacesInput): Promise<GetAllPlacesOutput> {
     try {
-      const places = await this.places.find();
+      const [places, totalResults] = await this.places.findAndCount({
+        take: 3,
+        skip: (page - 1) * 3,
+      });
       if (!places) {
         return { ok: false, error: "Places doesn't exist" };
       }
-      return { ok: true, places };
+      return { ok: true, places, totalResults };
     } catch {
       return { ok: false, error: 'Could not load' };
     }
@@ -32,7 +38,7 @@ export class PlacesService {
     createPlaceInput: CreatePlaceInput,
   ): Promise<CreatePlaceOutput> {
     try {
-      const place = this.places.create(createPlaceInput);
+      const place = this.places.create({ ...createPlaceInput });
       await this.places.save(place);
       return { ok: true, place };
     } catch {
@@ -44,12 +50,13 @@ export class PlacesService {
     try {
       //to do: auto edit
       // if Place info !== google info
-      const place = await this.places.findOne(editPlaceInput.placeId);
+      const { placeId } = editPlaceInput;
+      const place = await this.places.findOne(placeId);
       if (!place) {
         return { ok: false, error: 'Place not found' };
       }
       await this.places.save({
-        id: editPlaceInput.placeId,
+        id: placeId,
         ...editPlaceInput,
       });
       return {
@@ -69,7 +76,7 @@ export class PlacesService {
       if (!place) {
         return { ok: false, error: 'Place not found' };
       }
-      const relation = await this.relations.findOneOrFail({ placeId });
+      const relation = await this.relations.findOne({ placeId });
       if (relation) {
         return { ok: false, error: 'Relation exists. Could not delete' };
       }

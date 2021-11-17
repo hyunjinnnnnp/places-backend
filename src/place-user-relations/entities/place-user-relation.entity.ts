@@ -24,7 +24,7 @@ export class PlaceUserRelation {
 
   @Field((type) => User)
   @ManyToOne((type) => User, (user) => user.relations, { onDelete: 'SET NULL' })
-  user: User;
+  user: User; //if relation deleted, user also deleted (on user.relations)
 
   @Field((type) => Number)
   @Column()

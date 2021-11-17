@@ -3,11 +3,10 @@ import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Place } from '../entities/place.entity';
 
 @InputType()
-export class CreatePlaceInput extends PickType(Place, [
-  'name',
-  'address',
-  'coverImg',
-]) {}
+export class CreatePlaceInput extends PickType(Place, ['name', 'address']) {
+  @Field((type) => String, { nullable: true })
+  coverImg?: string;
+}
 
 @ObjectType()
 export class CreatePlaceOutput extends CoreOutput {

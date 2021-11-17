@@ -4,7 +4,10 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
-import { GetAllPlacesOutput } from './dtos/get-all-places.dto';
+import {
+  GetAllPlacesInput,
+  GetAllPlacesOutput,
+} from './dtos/get-all-places.dto';
 import { Place } from './entities/place.entity';
 import { PlacesService } from './places.service';
 
@@ -13,10 +16,12 @@ export class PlacesResolver {
   constructor(private readonly placesService: PlacesService) {}
 
   @Query((returns) => GetAllPlacesOutput)
-  places(): Promise<GetAllPlacesOutput> {
+  places(
+    @Args('input') getAllPlacesInput: GetAllPlacesInput,
+  ): Promise<GetAllPlacesOutput> {
     // for map & paginated list
     //to do : pagination, input type
-    return this.placesService.allPlaces();
+    return this.placesService.getAllPlaces(getAllPlacesInput);
   }
 
   @UseGuards(AuthGuard)
