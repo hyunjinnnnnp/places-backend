@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PAGINATION_PAGE } from 'src/common/common.constants';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
@@ -22,13 +23,18 @@ export class PlacesService {
   async getAllPlaces({ page }: GetAllPlacesInput): Promise<GetAllPlacesOutput> {
     try {
       const [places, totalResults] = await this.places.findAndCount({
-        take: 3,
-        skip: (page - 1) * 3,
+        take: PAGINATION_PAGE,
+        skip: (page - 1) * PAGINATION_PAGE,
       });
       if (!places) {
         return { ok: false, error: "Places doesn't exist" };
       }
-      return { ok: true, places, totalResults };
+      return {
+        ok: true,
+        places,
+        totalPages: Math.ceil(totalResults / PAGINATION_PAGE),
+        totalResults,
+      };
     } catch {
       return { ok: false, error: 'Could not load' };
     }

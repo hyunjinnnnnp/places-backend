@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PAGINATION_PAGE } from 'src/common/common.constants';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -20,6 +21,7 @@ import {
   GetUserRelationsOutput,
 } from './dtos/get-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
+import { PaginationRepository } from '../places/repositories/pagination.repository';
 
 @Injectable()
 export class PlaceUserRelationsService {
@@ -28,21 +30,36 @@ export class PlaceUserRelationsService {
     private readonly relations: Repository<PlaceUserRelation>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Place) private readonly places: Repository<Place>,
+    private readonly paginate: PaginationRepository,
   ) {}
 
   async getUserRelations({
     userId,
+    page,
   }: GetUserRelationsInput): Promise<GetUserRelationsOutput> {
     try {
-      const user = await this.users.findOne(userId);
+      const user = await this.users.findOne(userId, {
+        relations: ['relations'],
+      });
       if (!user) {
         return { ok: false, error: "User id doesn't exist" };
       }
-      const relations = await this.relations.find({ userId });
-      if (!relations) {
-        return { ok: false, error: 'Relations not found' };
-      }
-      return { ok: true, relations };
+      //1. user를 찾으면서 relation을 같이 받아온다
+
+      // const { relations } = user;
+      // if (!relations) {
+      //   return { ok: false, error: 'Relations not found' };
+      // }
+      //2. 유저를 확인한 후 릴레이션을 따로 받아온다 ? <----- 효율적으로 못할까?
+      const [relations, totalResults] = await this.paginate.getResults(page, {
+        user,
+      });
+      return {
+        ok: true,
+        relations,
+        totalResults,
+        totalPages: Math.ceil(totalResults / PAGINATION_PAGE),
+      };
     } catch {
       return { ok: false, error: 'Could not load relations' };
     }
