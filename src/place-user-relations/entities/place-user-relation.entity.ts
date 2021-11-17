@@ -10,10 +10,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@InputType('RelationInputType', { isAbstract: true })
+@InputType('PlaceUserRelationInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
-export class Relation {
+export class PlaceUserRelation {
   @PrimaryGeneratedColumn()
   @Field((type) => Number)
   id: number;
@@ -25,6 +25,7 @@ export class Relation {
   @JoinColumn({ name: 'placeId' })
   place: Place;
 
+  @Field((type) => Number)
   @Column()
   placeId: number;
 
@@ -33,6 +34,7 @@ export class Relation {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Field((type) => Number)
   @Column()
   userId: number;
 

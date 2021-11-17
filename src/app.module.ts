@@ -18,7 +18,8 @@ import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verification.entity';
 import { MailModule } from './mail/mail.module';
 import { Category } from './places/entities/category.entity';
-import { Relation } from './common/entities/relation.entity';
+import { PlaceUserRelationsModule } from './place-user-relations/place-user-relations.module';
+import { PlaceUserRelation } from './place-user-relations/entities/place-user-relation.entity';
 
 @Module({
   imports: [
@@ -48,7 +49,7 @@ import { Relation } from './common/entities/relation.entity';
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User, Verification, Place, Category, Relation],
+      entities: [User, Verification, Place, Category, PlaceUserRelation],
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: true,
@@ -65,6 +66,7 @@ import { Relation } from './common/entities/relation.entity';
     AuthModule,
     UsersModule,
     PlacesModule,
+    PlaceUserRelationsModule,
   ],
   controllers: [],
   providers: [],

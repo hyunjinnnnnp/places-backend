@@ -1,7 +1,7 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { Relation } from 'src/common/entities/relation.entity';
+import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Category } from './category.entity';
 
@@ -24,11 +24,11 @@ export class Place extends CoreEntity {
   @IsString()
   coverImg: string;
 
-  @Field((type) => [Relation], { nullable: true })
-  @OneToMany((type) => Relation, (relation) => relation.place, {
+  @Field((type) => [PlaceUserRelation], { nullable: true })
+  @OneToMany((type) => PlaceUserRelation, (relation) => relation.place, {
     nullable: true,
   })
-  relations?: Relation[];
+  relations?: PlaceUserRelation[];
 
   @Field((type) => Category, { nullable: true })
   @ManyToOne((type) => Category, (category) => category.places, {

@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsString } from 'class-validator';
-import { Relation } from 'src/common/entities/relation.entity';
+import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 
 @InputType('UserInputType', { isAbstract: true })
 @ObjectType()
@@ -25,11 +25,11 @@ export class User extends CoreEntity {
   @IsBoolean()
   verified: boolean;
 
-  @Field((type) => [Relation], { nullable: true })
-  @OneToMany((type) => Relation, (relation) => relation.user, {
+  @Field((type) => [PlaceUserRelation], { nullable: true })
+  @OneToMany((type) => PlaceUserRelation, (relation) => relation.user, {
     nullable: true,
   })
-  relations?: Relation[];
+  relations?: PlaceUserRelation[];
 
   @BeforeInsert()
   @BeforeUpdate()

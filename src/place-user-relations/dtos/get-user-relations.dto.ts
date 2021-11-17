@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreOutput } from 'src/common/dtos/output.dto';
-import { Relation } from 'src/common/entities/relation.entity';
+import { PlaceUserRelation } from '../entities/place-user-relation.entity';
 
 @InputType()
 export class GetUserRelationsInput {
@@ -10,6 +10,6 @@ export class GetUserRelationsInput {
 
 @ObjectType()
 export class GetUserRelationsOutput extends CoreOutput {
-  @Field((type) => [Relation], { nullable: true })
-  relations?: Relation[];
+  @Field((type) => [PlaceUserRelation], { nullable: true })
+  relations?: PlaceUserRelation[];
 }
