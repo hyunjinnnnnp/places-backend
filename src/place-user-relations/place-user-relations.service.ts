@@ -103,6 +103,8 @@ export class PlaceUserRelationsService {
     user: User,
     { relationId }: DeleteRelationInput,
   ): Promise<DeleteRelationOutput> {
+    //if place doesn't exist anymore ?
+    //should notice, then delete
     try {
       const relation = await this.relations.findOne(relationId);
       if (!relation) {

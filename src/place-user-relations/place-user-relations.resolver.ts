@@ -19,9 +19,10 @@ import {
   GetUserRelationsInput,
   GetUserRelationsOutput,
 } from './dtos/get-user-relations.dto';
+import { PlaceUserRelation } from './entities/place-user-relation.entity';
 import { PlaceUserRelationsService } from './place-user-relations.service';
 
-@Resolver()
+@Resolver((of) => PlaceUserRelation)
 export class PlaceUserRelationsResolver {
   constructor(
     private readonly placeUserRelationsService: PlaceUserRelationsService,

@@ -1,12 +1,23 @@
-import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql';
+import {
+  Field,
+  InputType,
+  ObjectType,
+  PartialType,
+  PickType,
+} from '@nestjs/graphql';
 import { CoreOutput } from 'src/common/dtos/output.dto';
-import { CreatePlaceInput } from './create-place.dto';
+import { Place } from '../entities/place.entity';
 
 @InputType()
-export class EditPlaceInput extends PartialType(CreatePlaceInput) {}
+export class EditPlaceInput extends PartialType(
+  PickType(Place, ['name', 'address', 'coverImg']),
+) {
+  @Field((type) => Number)
+  placeId: number;
+}
 
 @ObjectType()
 export class EditPlaceOutput extends CoreOutput {
-  @Field((type) => EditPlaceInput)
-  data: EditPlaceInput;
+  @Field((type) => Place, { nullable: true })
+  place?: Place;
 }

@@ -19,10 +19,10 @@ export class Place extends CoreEntity {
   @IsString()
   address: string;
 
-  @Field((type) => String)
-  @Column()
+  @Field((type) => String, { nullable: true })
+  @Column({ nullable: true })
   @IsString()
-  coverImg: string;
+  coverImg?: string;
 
   @Field((type) => [PlaceUserRelation], { nullable: true })
   @OneToMany((type) => PlaceUserRelation, (relation) => relation.place, {

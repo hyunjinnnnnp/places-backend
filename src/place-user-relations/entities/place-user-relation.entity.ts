@@ -2,13 +2,7 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsBoolean, IsString } from 'class-validator';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @InputType('PlaceUserRelationInputType', { isAbstract: true })
 @ObjectType()
@@ -22,7 +16,6 @@ export class PlaceUserRelation {
   @ManyToOne((type) => Place, (place) => place.relations, {
     onDelete: 'SET NULL',
   })
-  @JoinColumn({ name: 'placeId' })
   place: Place;
 
   @Field((type) => Number)
@@ -31,7 +24,6 @@ export class PlaceUserRelation {
 
   @Field((type) => User)
   @ManyToOne((type) => User, (user) => user.relations, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Field((type) => Number)
