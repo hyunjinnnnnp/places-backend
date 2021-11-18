@@ -19,6 +19,10 @@ import {
   GetUserRelationsInput,
   GetUserRelationsOutput,
 } from './dtos/get-user-relations.dto';
+import {
+  SearchUserRelationInput,
+  SearchUserRelationOutput,
+} from './dtos/search-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 import { PlaceUserRelationsService } from './place-user-relations.service';
 
@@ -34,6 +38,16 @@ export class PlaceUserRelationsResolver {
   ): Promise<GetUserRelationsOutput> {
     return this.placeUserRelationsService.getUserRelations(
       getUserRelationsInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Query((returns) => SearchUserRelationOutput)
+  searchRelationByName(
+    @Args('input') searchUserRelationInput: SearchUserRelationInput,
+  ): Promise<SearchUserRelationOutput> {
+    return this.placeUserRelationsService.searchUserRelationByName(
+      searchUserRelationInput,
     );
   }
 

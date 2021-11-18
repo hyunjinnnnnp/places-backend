@@ -4,7 +4,7 @@ import { PAGINATION_NUMBER } from 'src/common/common.constants';
 import { Pagination } from 'src/common/common.pagination';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import {
   CreateRelationInput,
   CreateRelationOutput,
@@ -21,6 +21,10 @@ import {
   GetUserRelationsInput,
   GetUserRelationsOutput,
 } from './dtos/get-user-relations.dto';
+import {
+  SearchUserRelationInput,
+  SearchUserRelationOutput,
+} from './dtos/search-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 
 @Injectable()
@@ -49,14 +53,54 @@ export class PlaceUserRelationsService {
           user,
         },
       );
+      const totalPages = await this.paginate.getTotalPages(totalResults);
       return {
         ok: true,
         relations,
         totalResults,
-        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
+        totalPages,
       };
     } catch {
       return { ok: false, error: 'Could not load relations' };
+    }
+  }
+
+  async searchUserRelationByName({
+    page,
+    query,
+    userId,
+  }: SearchUserRelationInput): Promise<SearchUserRelationOutput> {
+    try {
+      const user = await this.users.findOne(userId);
+      if (!user) {
+        return { ok: false, error: 'User not found' };
+      }
+      const findOptions = {
+        relations: ['place'],
+        where: {
+          user,
+          place: {
+            name: Like(`%${query}%`),
+          },
+        },
+      };
+      const [relations, totalResults] = await this.paginate.getResults(
+        this.relations,
+        page,
+        findOptions,
+      );
+      const totalPages = await this.paginate.getTotalPages(totalResults);
+      return {
+        ok: true,
+        relations,
+        totalResults,
+        totalPages,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not load',
+      };
     }
   }
 
