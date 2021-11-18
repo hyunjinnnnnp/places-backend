@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PAGINATION_PAGE } from 'src/common/common.constants';
+import { PAGINATION_NUMBER } from 'src/common/common.constants';
+import { Pagination } from 'src/common/common.pagination';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -21,7 +22,6 @@ import {
   GetUserRelationsOutput,
 } from './dtos/get-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
-import { PaginationRepository } from '../places/repositories/pagination.repository';
 
 @Injectable()
 export class PlaceUserRelationsService {
@@ -30,7 +30,7 @@ export class PlaceUserRelationsService {
     private readonly relations: Repository<PlaceUserRelation>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Place) private readonly places: Repository<Place>,
-    private readonly paginate: PaginationRepository,
+    private readonly paginate: Pagination,
   ) {}
 
   async getUserRelations({
@@ -38,27 +38,22 @@ export class PlaceUserRelationsService {
     page,
   }: GetUserRelationsInput): Promise<GetUserRelationsOutput> {
     try {
-      const user = await this.users.findOne(userId, {
-        relations: ['relations'],
-      });
+      const user = await this.users.findOne(userId);
       if (!user) {
         return { ok: false, error: "User id doesn't exist" };
       }
-      //1. user를 찾으면서 relation을 같이 받아온다
-
-      // const { relations } = user;
-      // if (!relations) {
-      //   return { ok: false, error: 'Relations not found' };
-      // }
-      //2. 유저를 확인한 후 릴레이션을 따로 받아온다 ? <----- 효율적으로 못할까?
-      const [relations, totalResults] = await this.paginate.getResults(page, {
-        user,
-      });
+      const [relations, totalResults] = await this.paginate.getResults(
+        this.relations,
+        page,
+        {
+          user,
+        },
+      );
       return {
         ok: true,
         relations,
         totalResults,
-        totalPages: Math.ceil(totalResults / PAGINATION_PAGE),
+        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
       };
     } catch {
       return { ok: false, error: 'Could not load relations' };
