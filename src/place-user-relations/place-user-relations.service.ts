@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PAGINATION_NUMBER } from 'src/common/common.constants';
 import { Pagination } from 'src/common/common.pagination';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Like, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import {
   CreateRelationInput,
   CreateRelationOutput,
@@ -80,7 +79,7 @@ export class PlaceUserRelationsService {
         where: {
           user,
           place: {
-            name: Like(`%${query}%`),
+            name: ILike(`%${query}%`),
           },
         },
       };

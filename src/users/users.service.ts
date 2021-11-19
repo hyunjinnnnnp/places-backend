@@ -45,7 +45,6 @@ export class UsersService {
       this.mailService.sendVerificationEmail(user.email, verification.code);
       return {
         ok: true,
-        error: null,
       };
     } catch {
       return {
@@ -94,7 +93,8 @@ export class UsersService {
 
   async findById(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOne({ id });
+      const user = await this.users.findOneOrFail({ id });
+      //if failed, throw an error
       return {
         ok: true,
         user,
@@ -131,7 +131,7 @@ export class UsersService {
       return { ok: false, error: 'Could not edit' };
     }
   }
-  async verifyEmail(code: string): Promise<VerifyEmailOutput> {
+  async verifyEmail({ code }: VerifyEmailInput): Promise<VerifyEmailOutput> {
     try {
       const verification = await this.verification.findOne(
         { code },
@@ -145,7 +145,7 @@ export class UsersService {
       }
       return { ok: false, error: 'Verification not found.' };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'Could not verify email' };
     }
   }
 }
