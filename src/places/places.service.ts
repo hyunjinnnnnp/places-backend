@@ -48,7 +48,9 @@ export class PlacesService {
     try {
       const place = this.places.create({ ...createPlaceInput });
       await this.places.save(place);
-      return { ok: true, place };
+      if (place) {
+        return { ok: true, place };
+      }
     } catch {
       return { ok: false, error: 'Could not create' };
     }
