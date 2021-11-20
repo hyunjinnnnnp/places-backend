@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Pagination } from 'src/common/pagination.service';
+import { Pagination } from 'src/common/common.pagination';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
 import { Place } from './entities/place.entity';

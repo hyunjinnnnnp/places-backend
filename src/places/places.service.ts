@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PAGINATION_NUMBER } from 'src/common/common.constants';
-import { Pagination } from 'src/common/pagination.service';
+import { Pagination } from 'src/common/common.pagination';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
