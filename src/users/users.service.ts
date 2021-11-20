@@ -125,7 +125,7 @@ export class UsersService {
       if (password) {
         user.password = password;
       }
-      this.users.save(user);
+      await this.users.save(user);
       return { ok: true };
     } catch (error) {
       return { ok: false, error: 'Could not edit' };

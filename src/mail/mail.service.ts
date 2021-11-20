@@ -1,10 +1,6 @@
 import got from 'got';
 import * as FormData from 'form-data';
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CONFIG_OPTIONS } from 'src/common/common.constants';
 import { EmailVar, MailModuleOptions } from './mail.interfaces';
 @Injectable()
@@ -12,6 +8,7 @@ export class MailService {
   constructor(
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
+  // TO DO : sendEmail private
   async sendEmail(
     subject: string,
     // to: string,

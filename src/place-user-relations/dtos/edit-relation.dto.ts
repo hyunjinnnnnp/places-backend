@@ -14,9 +14,6 @@ export class EditRelationInput extends PartialType(
 ) {
   @Field((type) => Number)
   relationId: number;
-
-  @Field((type) => Number)
-  userId: number;
 }
 
 @ObjectType()

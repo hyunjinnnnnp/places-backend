@@ -129,8 +129,9 @@ export class PlaceUserRelationsService {
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
-      const newRelation = this.relations.create(createRelationInput);
-      await this.relations.save(newRelation);
+      const newRelation = await this.relations.save(
+        this.relations.create(createRelationInput),
+      );
       return { ok: true, relation: newRelation };
     } catch {
       return { ok: false, error: 'Could not create' };
@@ -179,6 +180,7 @@ export class PlaceUserRelationsService {
         };
       }
       await this.relations.delete(relationId);
+
       return { ok: true };
     } catch {
       return { ok: false, error: 'Could not delete' };
