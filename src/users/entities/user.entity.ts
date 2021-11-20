@@ -5,7 +5,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsString } from 'class-validator';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
-import { Follow } from './follow.entity';
+import { Follow } from '../../follows/entities/follow.entity';
 
 @InputType('UserInputType', { isAbstract: true })
 @ObjectType()
@@ -33,11 +33,17 @@ export class User extends CoreEntity {
   relations?: PlaceUserRelation[];
 
   @Field((type) => [Follow], { nullable: true })
-  @OneToMany((type) => Follow, (follow) => follow.following, { nullable: true })
+  @OneToMany((type) => Follow, (follow) => follow.following, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   following?: Follow[];
 
   @Field((type) => [Follow], { nullable: true })
-  @OneToMany((type) => Follow, (follow) => follow.following, { nullable: true })
+  @OneToMany((type) => Follow, (follow) => follow.following, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   followers?: Follow[];
 
   @BeforeInsert()

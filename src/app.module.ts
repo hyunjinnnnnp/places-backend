@@ -20,7 +20,8 @@ import { MailModule } from './mail/mail.module';
 import { Category } from './places/entities/category.entity';
 import { PlaceUserRelationsModule } from './place-user-relations/place-user-relations.module';
 import { PlaceUserRelation } from './place-user-relations/entities/place-user-relation.entity';
-import { Follow } from './users/entities/follow.entity';
+import { Follow } from './follows/entities/follow.entity';
+import { FollowsModule } from './follows/follows.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { Follow } from './users/entities/follow.entity';
     UsersModule,
     PlacesModule,
     PlaceUserRelationsModule,
+    FollowsModule,
   ],
   controllers: [],
   providers: [],
