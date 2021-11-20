@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PAGINATION_NUMBER } from 'src/common/common.constants';
-import { Pagination } from 'src/common/common.pagination';
+import { Pagination } from 'src/common/pagination.service';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
@@ -28,9 +28,6 @@ export class PlacesService {
         this.places,
         page,
       );
-      if (!places) {
-        return { ok: false, error: "Places doesn't exist" };
-      }
       return {
         ok: true,
         places,
@@ -48,9 +45,7 @@ export class PlacesService {
     try {
       const place = this.places.create({ ...createPlaceInput });
       await this.places.save(place);
-      if (place) {
-        return { ok: true, place };
-      }
+      return { ok: true, place };
     } catch {
       return { ok: false, error: 'Could not create' };
     }

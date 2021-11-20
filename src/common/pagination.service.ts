@@ -11,6 +11,7 @@ export class Pagination {
       take: PAGINATION_NUMBER,
       skip: (page - 1) * PAGINATION_NUMBER,
     });
+    console.log(result);
     return result;
   }
   async getTotalPages(totalResults: number) {

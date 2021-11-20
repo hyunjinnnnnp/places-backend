@@ -1,7 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { PAGINATION_NUMBER } from 'src/common/common.constants';
-import { Pagination } from 'src/common/common.pagination';
+import { Pagination } from 'src/common/pagination.service';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
 import { Place } from './entities/place.entity';
@@ -14,7 +13,14 @@ const mockRepository = () => ({
   delete: jest.fn(),
 });
 const mockPagination = () => ({
-  getResults: jest.fn((n) => Promise.resolve(n)),
+  getResults: jest.fn(() => {
+    return {
+      ok: true,
+      places: [],
+      totalPages: 1,
+      totalResults: 1,
+    };
+  }),
 });
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('placesService', () => {
@@ -47,19 +53,31 @@ describe('placesService', () => {
   });
   describe('getAllPlaces', () => {
     it('should get all places', async () => {
-      const place = { place: { id: 1 } };
-      const mockPlaces = [place];
-      //   placesRepository.find.mockResolvedValue(place);
-      await placesService.getAllPlaces({ page: 1 });
+      //mock PAGINATION SERVICE <<<Failed
+
+      jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
+        return [[], 1];
+      });
+      const result = await placesService.getAllPlaces({ page: 1 });
       expect(pagination.getResults).toHaveBeenCalledTimes(1);
       expect(pagination.getResults).toHaveBeenCalledWith(placesRepository, 1);
-      //   expect(placesRepository.findAndCount).toEqual([
-      //     mockPlaces,
-      //     mockPlaces.length,
-      //   ]);
+      expect(result).toEqual({
+        ok: true,
+        places: [],
+        totalPages: 1,
+        totalResults: 1,
+      });
     });
-    it('should fail if place does not exist', () => {});
-    it('should fail on exception', () => {});
+    it('should fail on exception', async () => {
+      jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
+        return new Error();
+      });
+      const result = await placesService.getAllPlaces({ page: 1 });
+      expect(result).toEqual({
+        ok: false,
+        error: 'Could not load',
+      });
+    });
   });
   describe('createPlace', () => {
     const createPlaceArgs = {
@@ -128,6 +146,8 @@ describe('placesService', () => {
     it('should fail on exception', async () => {
       placesRepository.findOne.mockRejectedValue(new Error());
       const result = await placesService.editPlace({ placeId: 1 });
+      expect(placesRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(placesRepository.findOne).toHaveBeenCalledWith(1);
       expect(result).toEqual({ ok: false, error: 'Could not Edit' });
     });
   });
@@ -138,11 +158,15 @@ describe('placesService', () => {
     it('should delete place', async () => {
       placesRepository.findOne.mockResolvedValue(place);
       const result = await placesService.deletePlace({ placeId: place.id });
+      expect(placesRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(placesRepository.findOne).toHaveBeenCalledWith(1);
       expect(result).toEqual({ ok: true });
     });
     it('should fail if place not found', async () => {
       placesRepository.findOne.mockResolvedValue(null);
       const result = await placesService.deletePlace({ placeId: place.id });
+      expect(placesRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(placesRepository.findOne).toHaveBeenCalledWith(1);
       expect(result).toEqual({ ok: false, error: 'Place not found' });
     });
     it('should fail if relation exists', async () => {
