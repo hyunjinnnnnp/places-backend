@@ -29,11 +29,14 @@ export class User extends CoreEntity {
   @Field((type) => [PlaceUserRelation], { nullable: true })
   @OneToMany((type) => PlaceUserRelation, (relation) => relation.user, {
     nullable: true,
+    onDelete: 'SET NULL',
   })
   relations?: PlaceUserRelation[];
 
   @Field((type) => [Follow], { nullable: true })
-  @OneToMany((type) => Follow, (follow) => follow.following, {
+  @OneToMany((type) => Follow, (follow) => follow.follower, {
+    //팔로우 생성과 반대
+    //user가 follower로써 상대를 추가한다. >> 그 팔로우 내역을 following[]에 저장한다.
     nullable: true,
     onDelete: 'SET NULL',
   })

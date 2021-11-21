@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 @InputType('FollowInputType', { isAbstract: true })
@@ -8,7 +8,13 @@ import { User } from '../../users/entities/user.entity';
 @Entity()
 export class Follow extends CoreEntity {
   @Field((type) => User)
-  @ManyToOne((type) => User, (user) => user.following, { onDelete: 'SET NULL' })
+  @ManyToOne((type) => User, (user) => user.following, {
+    onDelete: 'SET NULL',
+    cascade: true,
+  })
+  @JoinColumn({
+    name: 'followingId',
+  })
   following: User;
 
   @Field((type) => Number)
@@ -17,13 +23,16 @@ export class Follow extends CoreEntity {
 
   @Field((type) => User)
   @ManyToOne((type) => User, (user) => user.followers, { onDelete: 'SET NULL' })
+  @JoinColumn({
+    name: 'followerId',
+  })
   follower: User;
 
   @Field((type) => Number)
   @Column()
   followerId: number;
 
-  @Field((type) => Boolean, { defaultValue: false })
-  @Column()
+  @Field((type) => Boolean)
+  @Column({ default: false })
   isChecked: boolean;
 }
