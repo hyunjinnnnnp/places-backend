@@ -2,7 +2,7 @@ Follow Entity (with isChecked) User <-> User Relations
 
 - getUserFollows [x]
 - getFollowingUsersInfo []
-- getFollowersInfo []
+- getFollowersInfo [x]
 - create follow [x]
 - accept follow []
 - unfollow []
