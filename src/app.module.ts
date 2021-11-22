@@ -10,8 +10,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlacesModule } from './places/places.module';
 import { Place } from './places/entities/place.entity';
-import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { UsersModule } from './users/users.module';
 import { JwtModule } from './jwt/jwt.module';
 import { jwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
@@ -22,6 +22,7 @@ import { PlaceUserRelationsModule } from './place-user-relations/place-user-rela
 import { PlaceUserRelation } from './place-user-relations/entities/place-user-relation.entity';
 import { Follow } from './follows/entities/follow.entity';
 import { FollowsModule } from './follows/follows.module';
+import { Suggestion } from './users/entities/suggestion.entity';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { FollowsModule } from './follows/follows.module';
         Category,
         PlaceUserRelation,
         Follow,
+        Suggestion,
       ],
     }),
     GraphQLModule.forRoot({

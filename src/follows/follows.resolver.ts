@@ -71,7 +71,6 @@ export class FollowsResolver {
   ): Promise<UnfollowOutput> {
     return this.followsService.unFollow(authUser, unFollowInput);
   }
-
   // @UseGuards(AuthGuard)
   // @Mutation((retuns) => AcceptFollowOutput)
   // acceptFollow(

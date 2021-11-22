@@ -6,8 +6,20 @@ import {
   CreateAccountInput,
   CreateAccountOutput,
 } from './dto/create-account.dto';
+import {
+  DeleteSuggestionInput,
+  DeleteSuggestionOutput,
+} from './dto/delete-suggestion.dto';
 import { EditProfileInput, EditProfileOutput } from './dto/edit-profile.dto';
+import {
+  GetPrivateSuggestionsInput,
+  GetPrivateSuggestionsOutput,
+} from './dto/get-private-suggestions.dto';
 import { LoginInput, LoginOutput } from './dto/login.dto';
+import {
+  MakeSuggestionInput,
+  MakeSuggestionOutput,
+} from './dto/make-suggestion.dto';
 import { UserProfileInput, UserProfileOutput } from './dto/user-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dto/verify-email.dto';
 import { User } from './entities/user.entity';
@@ -57,5 +69,37 @@ export class UsersResolver {
     @Args('input') verifyEmailInput: VerifyEmailInput,
   ): Promise<VerifyEmailOutput> {
     return this.usersService.verifyEmail(verifyEmailInput);
+  }
+
+  //------------------------- suggestions ---------------------------//
+
+  @UseGuards(AuthGuard)
+  @Query((returns) => GetPrivateSuggestionsOutput)
+  getPrivateSuggestions(
+    @AuthUser() authUser: User,
+    @Args('input') getPrivateSuggestionsInput: GetPrivateSuggestionsInput,
+  ): Promise<GetPrivateSuggestionsOutput> {
+    return this.usersService.getPrivateSuggestions(
+      authUser,
+      getPrivateSuggestionsInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => MakeSuggestionOutput)
+  makeSuggestion(
+    @AuthUser() authUser: User,
+    @Args('input') makeSuggestionInput: MakeSuggestionInput,
+  ): Promise<MakeSuggestionOutput> {
+    return this.usersService.makeSuggestion(authUser, makeSuggestionInput);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => DeleteSuggestionOutput)
+  deleteSuggestion(
+    @AuthUser() user: User,
+    @Args('input') deleteSuggestionInput: DeleteSuggestionInput,
+  ): Promise<DeleteSuggestionOutput> {
+    return this.usersService.deleteSuggestion(user, deleteSuggestionInput);
   }
 }

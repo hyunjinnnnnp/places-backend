@@ -6,6 +6,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsString } from 'class-validator';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Follow } from '../../follows/entities/follow.entity';
+import { Suggestion } from './suggestion.entity';
 
 @InputType('UserInputType', { isAbstract: true })
 @ObjectType()
@@ -48,6 +49,12 @@ export class User extends CoreEntity {
     onDelete: 'SET NULL',
   })
   followers?: Follow[];
+
+  @OneToMany((type) => Suggestion, (suggestion) => suggestion.receiver)
+  receivers?: Suggestion[];
+
+  @OneToMany((type) => Suggestion, (suggestion) => suggestion.sender)
+  senders?: Suggestion[];
 
   @BeforeInsert()
   @BeforeUpdate()

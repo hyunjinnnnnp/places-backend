@@ -6,13 +6,27 @@ import {
   CreateAccountOutput,
 } from './dto/create-account.dto';
 import { LoginInput, LoginOutput } from './dto/login.dto';
-import { User } from './entities/user.entity';
 import { JwtService } from 'src/jwt/jwt.service';
 import { EditProfileInput, EditProfileOutput } from './dto/edit-profile.dto';
 import { UserProfileOutput } from './dto/user-profile.dto';
 import { Verification } from './entities/verification.entity';
 import { VerifyEmailInput, VerifyEmailOutput } from './dto/verify-email.dto';
 import { MailService } from 'src/mail/mail.service';
+import {
+  MakeSuggestionInput,
+  MakeSuggestionOutput,
+} from './dto/make-suggestion.dto';
+import { User } from './entities/user.entity';
+import { Follow } from 'src/follows/entities/follow.entity';
+import { Suggestion } from './entities/suggestion.entity';
+import {
+  GetPrivateSuggestionsInput,
+  GetPrivateSuggestionsOutput,
+} from './dto/get-private-suggestions.dto';
+import {
+  DeleteSuggestionInput,
+  DeleteSuggestionOutput,
+} from './dto/delete-suggestion.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +36,9 @@ export class UsersService {
     private readonly verification: Repository<Verification>,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    @InjectRepository(Follow) private readonly follows: Repository<Follow>,
+    @InjectRepository(Suggestion)
+    private readonly suggestions: Repository<Suggestion>,
   ) {}
 
   async createAccount({
@@ -146,6 +163,95 @@ export class UsersService {
       return { ok: false, error: 'Verification not found.' };
     } catch (error) {
       return { ok: false, error: 'Could not verify email' };
+    }
+  }
+
+  async getPrivateSuggestions(
+    authUser: User,
+    { followerId }: GetPrivateSuggestionsInput,
+  ): Promise<GetPrivateSuggestionsOutput> {
+    try {
+      const [_, followExists] = await this.follows.findAndCount({
+        where: [
+          { followerId: authUser.id, followingId: followerId },
+          { followerId, followingId: authUser.id },
+        ],
+      });
+      if (followExists !== 2) {
+        return {
+          ok: false,
+          error: 'Could not found relations between users',
+        };
+      }
+      const suggestions = await this.suggestions.find({
+        where: [
+          { senderId: authUser.id, receiverId: followerId },
+          { senderId: followerId, receiverId: authUser.id },
+        ],
+      });
+      //TO DO: pagination
+      return { ok: true, suggestions };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async makeSuggestion(
+    sender: User,
+    makeSuggestionInput: MakeSuggestionInput,
+  ): Promise<MakeSuggestionOutput> {
+    try {
+      const { receiverId } = makeSuggestionInput;
+      const receiver = await this.users.findOne(receiverId);
+      if (!receiver) {
+        return { ok: false, error: 'User not found' };
+      }
+      //follow 관계 확인
+      const [follow, isBidirectional] = await this.follows.findAndCount({
+        where: [
+          {
+            followerId: sender.id,
+            followingId: receiverId,
+          },
+          { followerId: receiverId, followingId: sender.id },
+        ],
+      });
+      if (isBidirectional < 2) {
+        return {
+          ok: false,
+          error:
+            "Could not make a suggestion if you're not following each other",
+        };
+      }
+      const suggestion = await this.suggestions.save(
+        this.suggestions.create({ ...makeSuggestionInput, sender, receiver }),
+      );
+      return { ok: true, suggestion };
+    } catch {
+      return { ok: false, error: 'Could not make' };
+    }
+  }
+
+  async deleteSuggestion(
+    user: User,
+    { suggestionId }: DeleteSuggestionInput,
+  ): Promise<DeleteSuggestionOutput> {
+    try {
+      const suggestion = await this.suggestions.findOne(suggestionId);
+      if (!suggestion) {
+        return { ok: false, error: 'Could not found suggestion' };
+      }
+      //sender only can remove suggestions (?)
+      if (suggestion.senderId !== user.id) {
+        return {
+          ok: false,
+          error: 'Could not delete suggestion belongs to you',
+        };
+      }
+      await this.suggestions.remove(suggestion);
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Could not delete' };
     }
   }
 }

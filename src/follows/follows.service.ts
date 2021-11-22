@@ -135,7 +135,6 @@ export class FollowsService {
       following.followers.push(follow);
       await this.users.save(follower);
       await this.users.save(following);
-      console.log(follower.following, following.followers);
       //TO DO : send message to following user.
       return { ok: true };
     } catch {
