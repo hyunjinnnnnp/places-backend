@@ -9,8 +9,8 @@ import { User } from '../../users/entities/user.entity';
 export class Follow extends CoreEntity {
   @Field((type) => User)
   @ManyToOne((type) => User, (user) => user.following, {
-    onDelete: 'SET NULL',
-    cascade: true,
+    onDelete: 'CASCADE',
+    // cascade: true,
   })
   @JoinColumn({
     name: 'followingId',
@@ -22,7 +22,9 @@ export class Follow extends CoreEntity {
   followingId: number;
 
   @Field((type) => User)
-  @ManyToOne((type) => User, (user) => user.followers, { onDelete: 'SET NULL' })
+  @ManyToOne((type) => User, (user) => user.followers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'followerId',
   })
@@ -32,7 +34,7 @@ export class Follow extends CoreEntity {
   @Column()
   followerId: number;
 
-  @Field((type) => Boolean)
-  @Column({ default: false })
-  isChecked: boolean;
+  // @Field((type) => Boolean)
+  // @Column({ default: false })
+  // isChecked: boolean;
 }

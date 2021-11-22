@@ -16,9 +16,14 @@ import {
   GetFollowersInfoOutput,
 } from './dtos/get-followers-info.dto';
 import {
+  GetFollowingUsersInfoInput,
+  GetFollowingUsersInfoOutput,
+} from './dtos/get-followings-info.dto';
+import {
   GetUserFollowsInput,
   GetUserFollowsOutput,
 } from './dtos/get-user-follows.dto';
+import { UnfollowInput, UnfollowOutput } from './dtos/unfollow.dto';
 import { Follow } from './entities/follow.entity';
 import { FollowsService } from './follows.service';
 
@@ -40,6 +45,15 @@ export class FollowsResolver {
     return this.followsService.getFollowersInfo(getFollowersInfoInput);
   }
 
+  @Query((retusn) => GetFollowingUsersInfoOutput)
+  getFollowingUsersInfo(
+    @Args('input') getFollowingUsersInfoInput: GetFollowingUsersInfoInput,
+  ): Promise<GetFollowingUsersInfoOutput> {
+    return this.followsService.getFollowingUsersInfo(
+      getFollowingUsersInfoInput,
+    );
+  }
+
   @UseGuards(AuthGuard)
   @Mutation((returns) => CreateFollowOutput)
   createFollow(
@@ -50,11 +64,20 @@ export class FollowsResolver {
   }
 
   @UseGuards(AuthGuard)
-  @Mutation((retuns) => AcceptFollowOutput)
-  acceptFollow(
+  @Mutation((returns) => UnfollowOutput)
+  unFollow(
     @AuthUser() authUser: User,
-    @Args('input') acceptFollowInput: AcceptFollowInput,
-  ): Promise<AcceptFollowOutput> {
-    return this.followsService.acceptFollow(authUser, acceptFollowInput);
+    @Args('input') unFollowInput: UnfollowInput,
+  ): Promise<UnfollowOutput> {
+    return this.followsService.unFollow(authUser, unFollowInput);
   }
+
+  // @UseGuards(AuthGuard)
+  // @Mutation((retuns) => AcceptFollowOutput)
+  // acceptFollow(
+  //   @AuthUser() authUser: User,
+  //   @Args('input') acceptFollowInput: AcceptFollowInput,
+  // ): Promise<AcceptFollowOutput> {
+  //   return this.followsService.acceptFollow(authUser, acceptFollowInput);
+  // }
 }

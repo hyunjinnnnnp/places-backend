@@ -1,14 +1,18 @@
-Follow Entity (with isChecked) User <-> User Relations
+<TO DO>
+
+> Follow Entity. User <-> User Relations
 
 - getUserFollows [x]
-- getFollowingUsersInfo []
+- getFollowingUsersInfo [x]
 - getFollowersInfo [x]
 - create follow [x]
-- accept follow []
-- unfollow []
+- unfollow [x]
 
-- subscription
+> Suggestion Entity (with message, place) Follower <-> Follower Relations
+> Users can see everything but Suggestions(private)
 
-Suggestion Entity (with message, place) User <-> User Relations
+> subscription
 
-> > > user enum ? is neccessary? >> Users can see everything but messages
+- create follow -> send message (A is now following now)
+- sending message
+- see all messages
