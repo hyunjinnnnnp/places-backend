@@ -67,22 +67,29 @@ export class PlacesService {
     }
   }
 
-  async editPlace(editPlaceInput: EditPlaceInput): Promise<EditPlaceOutput> {
+  async editPlace({
+    placeId,
+    name,
+    address,
+    coverImg,
+  }: EditPlaceInput): Promise<EditPlaceOutput> {
     try {
       //to do: auto edit
       // if Place info !== google info
-      const { placeId } = editPlaceInput;
       const place = await this.places.findOne(placeId);
       if (!place) {
         return { ok: false, error: 'Place not found' };
       }
-      await this.places.save({
+      const newPlace = await this.places.save({
         id: placeId,
-        ...editPlaceInput,
+        address,
+        name,
+        coverImg,
       });
+      console.log(newPlace);
       return {
         ok: true,
-        place,
+        place: newPlace,
       };
     } catch {
       return { ok: false, error: 'Could not Edit' };
