@@ -3,10 +3,20 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Pagination } from 'src/common/common.pagination';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
-import { RelationId, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 import { PlaceUserRelationsService } from './place-user-relations.service';
 
+const authUser = {
+  id: 1,
+  email: '',
+  password: '',
+  verified: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  hashPassword: () => null,
+  checkPassword: () => null,
+};
 const mockRepository = () => ({
   findOne: jest.fn(),
   save: jest.fn(),
@@ -25,7 +35,7 @@ describe('PlaceUserRelations', () => {
   let service: PlaceUserRelationsService;
   let pagination: Pagination;
   let places: MockRepository<Place>;
-  let relations: MockRepository<PlaceUserRelation>;
+  let placeUserRelations: MockRepository<PlaceUserRelation>;
   let users: MockRepository<User>;
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -52,228 +62,338 @@ describe('PlaceUserRelations', () => {
     service = module.get<PlaceUserRelationsService>(PlaceUserRelationsService);
     pagination = module.get<Pagination>(Pagination);
     places = module.get(getRepositoryToken(Place));
-    relations = module.get(getRepositoryToken(PlaceUserRelation));
+    placeUserRelations = module.get(getRepositoryToken(PlaceUserRelation));
     users = module.get(getRepositoryToken(User));
   });
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  //   describe('getUserRelations', () => {
-  //     const getRelationArgs = { userId: 1, page: 1 };
-  //     it('should get places by user id', async () => {
-  //       const mockedUser = { id: 1 };
-  //       users.findOne.mockResolvedValue(mockedUser);
+  describe('getMyPlaceRelations', () => {
+    it('should get my place relations', async () => {
+      jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
+        return [[], 1];
+      });
+      jest.spyOn(pagination, 'getTotalPages').mockImplementation(async () => {
+        return 1;
+      });
+      const result = await service.getMyPlaceRelations(authUser, { page: 1 });
+      expect(result).toEqual({
+        ok: true,
+        relations: [],
+        totalResults: 1,
+        totalPages: 1,
+      });
+    });
+    it('should fail on exception', async () => {
+      jest.spyOn(pagination, 'getResults').mockRejectedValue(async () => {
+        return new Error();
+      });
+      const result = await service.getMyPlaceRelations(authUser, { page: 1 });
+      expect(result).toEqual({ ok: false, error: 'Could not load' });
+    });
+  });
+  describe('getPlaceUserRelationDetail', () => {
+    const getRelationDetailArgs = {
+      relationId: 1,
+    };
+    it('should return relation', async () => {
+      const mockedRelation = { id: 1, place: { id: 1 } };
+      placeUserRelations.findOne.mockResolvedValue(mockedRelation);
+      const result = await service.getPlaceUserRelationDetail(
+        getRelationDetailArgs,
+      );
+      expect(placeUserRelations.findOne).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.findOne).toHaveBeenCalledWith(
+        getRelationDetailArgs.relationId,
+        {
+          relations: ['place'],
+        },
+      );
+      expect(result).toEqual({ ok: true, relation: mockedRelation });
+    });
+    it('should fail if relation not found', async () => {
+      placeUserRelations.findOne.mockResolvedValue(null);
+      const result = await service.getPlaceUserRelationDetail(
+        getRelationDetailArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Relation not found' });
+    });
+    it('should fail on exception', async () => {
+      placeUserRelations.findOne.mockRejectedValue(new Error());
+      const result = await service.getPlaceUserRelationDetail(
+        getRelationDetailArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Could not load' });
+    });
+  });
+  describe('getPlaceUserRelationsByUserId', () => {
+    const getRelationArgs = { userId: 1, page: 1 };
+    it('should get places by user id', async () => {
+      const mockedUser = { id: 1 };
+      users.findOne.mockResolvedValue(mockedUser);
 
-  //       jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
-  //         return [[], getRelationArgs.page];
-  //       });
-  //       await service.getUserRelations(getRelationArgs);
-  //       expect(pagination.getResults).toHaveBeenCalledTimes(1);
-  //       expect(pagination.getResults).toHaveBeenCalledWith(
-  //         relations,
-  //         getRelationArgs.page,
-  //         { user: mockedUser },
-  //       );
-  //     });
-  //     it('should fail if user not found', async () => {
-  //       users.findOne.mockResolvedValue(null);
-  //       const result = await service.getUserRelations(getRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: "User id doesn't exist" });
-  //     });
-  //     it('should fail on exception', async () => {
-  //       users.findOne.mockResolvedValue({ id: 1 });
-  //       jest.spyOn(pagination, 'getTotalPages').mockRejectedValue(new Error());
-  //       const result = await service.getUserRelations(getRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Could not load relations' });
-  //     });
-  //   });
+      jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
+        return [[], getRelationArgs.page];
+      });
+      await service.getPlaceUserRelationsByUserId(getRelationArgs);
+      expect(pagination.getResults).toHaveBeenCalledTimes(1);
+      expect(pagination.getResults).toHaveBeenCalledWith(
+        placeUserRelations,
+        getRelationArgs.page,
+        { user: mockedUser },
+      );
+    });
+    it('should fail if user not found', async () => {
+      users.findOne.mockResolvedValue(null);
+      const result = await service.getPlaceUserRelationsByUserId(
+        getRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: "User id doesn't exist" });
+    });
+    it('should fail on exception', async () => {
+      users.findOne.mockResolvedValue({ id: 1 });
+      jest.spyOn(pagination, 'getTotalPages').mockRejectedValue(new Error());
+      const result = await service.getPlaceUserRelationsByUserId(
+        getRelationArgs,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: 'Could not load relations',
+      });
+    });
+  });
 
-  //   describe('searchUserRelationByName', () => {
-  //     const user = {
-  //       id: 1,
-  //     };
-  //     const searchArgs = {
-  //       page: 1,
-  //       query: 'searchQuery',
-  //       userId: user.id,
-  //     };
-  //     it('should search users relations by query', async () => {
-  //       users.findOne.mockResolvedValue(user);
+  describe('searchPlaceUserRelationByName', () => {
+    const searchArgs = {
+      page: 1,
+      query: 'searchQuery',
+    };
+    const findOptions = {
+      relations: ['place'],
+      where: {
+        user: authUser,
+        place: {
+          name: ILike(`%${searchArgs.query}%`),
+        },
+      },
+    };
+    it('should search users relations by query', async () => {
+      // users.findOne.mockResolvedValue(authUser);
+      jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
+        return [[authUser], 1];
+      });
+      jest.spyOn(pagination, 'getTotalPages').mockImplementation(async () => {
+        return 1;
+      });
+      const result = await service.searchPlaceUserRelationByName(
+        authUser,
+        searchArgs,
+      );
+      expect(pagination.getResults).toHaveBeenCalledTimes(1);
+      expect(pagination.getResults).toHaveBeenCalledWith(
+        placeUserRelations,
+        searchArgs.page,
+        findOptions,
+      );
+      expect(pagination.getTotalPages).toHaveBeenCalledTimes(1);
+      expect(pagination.getTotalPages).toHaveBeenCalledWith(1);
+      expect(result).toEqual({
+        ok: true,
+        relations: [authUser],
+        totalResults: 1,
+        totalPages: 1,
+      });
+    });
+    it('should fail on exception', async () => {
+      users.findOne.mockResolvedValue(authUser);
+      const result = await service.searchPlaceUserRelationByName(
+        authUser,
+        searchArgs,
+      );
+      jest.spyOn(pagination, 'getTotalPages').mockRejectedValue(new Error());
+      expect(result).toEqual({
+        ok: false,
+        error: 'Could not load',
+      });
+    });
+  });
+  describe('createPlaceUserRelation', () => {
+    const user = { id: 1 };
+    const place = { id: 1 };
+    const createRelationArgs = {
+      userId: user.id,
+      placeId: place.id,
+    };
+    it('should create relation', async () => {
+      places.findOne.mockResolvedValue(place);
+      placeUserRelations.findOne.mockResolvedValue(null);
+      placeUserRelations.create.mockResolvedValue(createRelationArgs);
+      placeUserRelations.save.mockResolvedValue(createRelationArgs);
+      const result = await service.createPlaceUserRelation(
+        authUser,
+        createRelationArgs,
+      );
+      expect(places.findOne).toHaveBeenCalledTimes(1);
+      expect(places.findOne).toHaveBeenCalledWith(place.id);
+      expect(placeUserRelations.findOne).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.findOne).toHaveBeenCalledWith({
+        userId: authUser.id,
+        placeId: place.id,
+      });
+      expect(placeUserRelations.create).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.create).toHaveBeenCalledWith(
+        createRelationArgs,
+      );
+      expect(placeUserRelations.save).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.save).toHaveBeenCalledWith(expect.any(Object));
+      expect(result).toEqual({ ok: true, relation: createRelationArgs });
+    });
+    it('should fail if place not found', async () => {
+      places.findOne.mockResolvedValue(null);
+      const result = await service.createPlaceUserRelation(
+        authUser,
+        createRelationArgs,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: 'Place id not found',
+      });
+    });
+    it('should fail if relation exists', async () => {
+      users.findOne.mockResolvedValue(user);
+      places.findOne.mockResolvedValue(place);
+      placeUserRelations.findOne.mockResolvedValue({ id: 1 });
+      const result = await service.createPlaceUserRelation(
+        authUser,
+        createRelationArgs,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: 'relation already exists',
+      });
+    });
+    it('should fail on exception', async () => {
+      places.findOne.mockRejectedValue(new Error());
+      const result = await service.createPlaceUserRelation(
+        authUser,
+        createRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Could not create' });
+    });
+  });
+  describe('editPlaceUserRelation', () => {
+    const oldRelation = {
+      id: 1,
+      userId: 1,
+    };
+    const editRelationArgs = {
+      relationId: 1,
+      userId: 1,
+      input: { memo: '' },
+    };
+    it('should edit relation', async () => {
+      placeUserRelations.findOne.mockResolvedValue(oldRelation);
+      placeUserRelations.save.mockResolvedValue(editRelationArgs);
+      const result = await service.editPlaceUserRelation(
+        authUser,
+        editRelationArgs,
+      );
+      expect(result).toEqual({ ok: true });
+      expect(placeUserRelations.findOne).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.findOne).toHaveBeenCalledWith(
+        editRelationArgs.relationId,
+      );
+      expect(placeUserRelations.save).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.save).toHaveBeenCalledWith({
+        id: editRelationArgs.relationId,
+        ...editRelationArgs,
+      });
+    });
+    it('should fail if relation not found', async () => {
+      placeUserRelations.findOne.mockResolvedValue(null);
+      const result = await service.editPlaceUserRelation(
+        authUser,
+        editRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Relation not found' });
+    });
+    it('should fail if authUser is not placeUserRelations owner', async () => {
+      const FAIL_USER_ID = 2;
+      placeUserRelations.findOne.mockResolvedValue({
+        id: 1,
+        userId: FAIL_USER_ID,
+      });
+      const result = await service.editPlaceUserRelation(
+        authUser,
+        editRelationArgs,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: "Could not edit somebody else's relation",
+      });
+    });
+    it('should fail on exception', async () => {
+      placeUserRelations.findOne.mockRejectedValue(new Error());
+      const result = await service.editPlaceUserRelation(
+        authUser,
+        editRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Could not edit' });
+    });
+  });
+  describe('deletePlaceUserRelation', () => {
+    const deleteRelationArgs = {
+      relationId: 1,
+      userId: 1,
+    };
+    const relation = { relationId: 1, userId: 1 };
 
-  //       jest.spyOn(pagination, 'getResults').mockImplementation(async () => {
-  //         return [[user], searchArgs.page];
-  //       });
-  //       await service.searchUserRelationByName(searchArgs);
-  //       expect(pagination.getResults).toHaveBeenCalledTimes(1);
-  //       expect(pagination.getResults).toHaveBeenCalledWith(
-  //         relations,
-  //         searchArgs.page,
-  //         expect.any(Object),
-  //       );
-  //     });
-  //     it('should fail if user not found', async () => {
-  //       users.findOne.mockResolvedValue(null);
-  //       const result = await service.searchUserRelationByName(searchArgs);
-  //       expect(result).toEqual({ ok: false, error: 'User not found' });
-  //     });
-  //     it('should fail on exception', async () => {
-  //       users.findOne.mockResolvedValue(user);
-  //       const result = await service.searchUserRelationByName(searchArgs);
-  //       jest.spyOn(pagination, 'getTotalPages').mockRejectedValue(new Error());
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: 'Could not load',
-  //       });
-  //     });
-  //   });
-  //   describe('createRelation', () => {
-  //     const user = { id: 1 };
-  //     const place = { id: 1 };
-  //     const createRelationArgs = {
-  //       userId: user.id,
-  //       placeId: place.id,
-  //     };
-  //     it('should create relation', async () => {
-  //       users.findOne.mockResolvedValue(user);
-  //       places.findOne.mockResolvedValue(place);
-  //       relations.findOne.mockResolvedValue(null);
-  //       relations.create.mockResolvedValue({});
-  //       await service.createRelation(createRelationArgs);
-  //       expect(relations.create).toHaveBeenCalledTimes(1);
-  //       expect(relations.create).toHaveBeenCalledWith(createRelationArgs);
-  //     });
-  //     it('should fail if user not found', async () => {
-  //       users.findOne.mockResolvedValue(null);
-  //       const result = await service.createRelation(createRelationArgs);
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: 'User id not found',
-  //       });
-  //     });
-  //     it('should fail if place not found', async () => {
-  //       users.findOne.mockResolvedValue(user);
-  //       places.findOne.mockResolvedValue(null);
-  //       const result = await service.createRelation(createRelationArgs);
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: 'Place id not found',
-  //       });
-  //     });
-  //     it('should fail if relation exists', async () => {
-  //       users.findOne.mockResolvedValue(user);
-  //       places.findOne.mockResolvedValue(place);
-  //       relations.findOne.mockResolvedValue({ id: 1 });
-  //       const result = await service.createRelation(createRelationArgs);
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: 'relation already exists',
-  //       });
-  //     });
-  //     it('should fail on exception', async () => {
-  //       users.findOne.mockRejectedValue(new Error());
-  //       const result = await service.createRelation(createRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Could not create' });
-  //     });
-  //   });
-  //   const authUser = {
-  //     id: 1,
-  //     email: '',
-  //     password: '',
-  //     verified: true,
-  //     hashPassword: async () => {},
-  //     checkPassword: async () => {
-  //       return true;
-  //     },
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //   };
-  //   describe('editRelation', () => {
-  //     const oldRelation = {
-  //       id: 1,
-  //       userId: 1,
-  //     };
-  //     const editRelationArgs = {
-  //       relationId: 1,
-  //       userId: 1,
-  //       input: { memo: '' },
-  //     };
-  //     it('should edit relation', async () => {
-  //       relations.findOne.mockResolvedValue(oldRelation);
-  //       relations.save.mockResolvedValue(editRelationArgs);
-  //       const result = await service.editRelation(authUser, editRelationArgs);
-  //       expect(result).toEqual({ ok: true });
-  //       expect(relations.findOne).toHaveBeenCalledTimes(1);
-  //       expect(relations.save).toHaveBeenCalledTimes(1);
-  //       expect(relations.save).toHaveBeenCalledWith({
-  //         id: 1,
-  //         ...editRelationArgs,
-  //       });
-  //     });
-  //     it('should fail if relation not found', async () => {
-  //       relations.findOne.mockResolvedValue(null);
-  //       const result = await service.editRelation(authUser, editRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Relation not found' });
-  //       expect(relations.findOne).toHaveBeenCalledTimes(1);
-  //       expect(relations.findOne).toHaveBeenCalledWith(
-  //         editRelationArgs.relationId,
-  //       );
-  //     });
-  //     it('should fail if authUser is not relations owner', async () => {
-  //       const FAIL_USER_ID = 2;
-  //       relations.findOne.mockResolvedValue({ id: 1, userId: FAIL_USER_ID });
-  //       const result = await service.editRelation(authUser, editRelationArgs);
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: "Could not edit somebody else's relation",
-  //       });
-  //     });
-  //     it('should fail on exception', async () => {
-  //       relations.findOne.mockRejectedValue(new Error());
-  //       const result = await service.editRelation(authUser, editRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Could not edit' });
-  //       expect(relations.findOne).toHaveBeenCalledTimes(1);
-  //       expect(relations.findOne).toHaveBeenCalledWith(
-  //         editRelationArgs.relationId,
-  //       );
-  //     });
-  //   });
-  //   describe('deleteRelation', () => {
-  //     const deleteRelationArgs = {
-  //       relationId: 1,
-  //       userId: 1,
-  //     };
-  //     const relation = { relationId: 1, userId: 1 };
-
-  //     it('should delete relation', async () => {
-  //       relations.findOne.mockResolvedValue(relation);
-  //       const result = await service.deleteRelation(authUser, deleteRelationArgs);
-  //       expect(result).toEqual({ ok: true });
-  //       expect(relations.findOne).toHaveBeenCalledTimes(1);
-  //       expect(relations.findOne).toHaveBeenCalledWith(deleteRelationArgs.userId);
-  //       expect(relations.delete).toHaveBeenCalledTimes(1);
-  //     });
-  //     it('should fail if relation not found', async () => {
-  //       relations.findOne.mockResolvedValue(null);
-  //       const result = await service.deleteRelation(authUser, deleteRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Relation not found' });
-  //       expect(relations.findOne).toHaveBeenCalledTimes(1);
-  //       expect(relations.findOne).toHaveBeenCalledWith(
-  //         deleteRelationArgs.relationId,
-  //       );
-  //     });
-  //     it('should fail if user does not own relation', async () => {
-  //       const FAIL_USER_ID = 2;
-  //       relations.findOne.mockResolvedValue({ id: 1, userId: FAIL_USER_ID });
-  //       const result = await service.deleteRelation(authUser, deleteRelationArgs);
-  //       expect(result).toEqual({
-  //         ok: false,
-  //         error: "cannot delete somebodyelse's relation",
-  //       });
-  //     });
-  //     it('should fail on exception', async () => {
-  //       relations.findOne.mockRejectedValue(new Error());
-  //       const result = await service.deleteRelation(authUser, deleteRelationArgs);
-  //       expect(result).toEqual({ ok: false, error: 'Could not delete' });
-  //     });
-  //  });
+    it('should delete relation', async () => {
+      placeUserRelations.findOne.mockResolvedValue(relation);
+      const result = await service.deletePlaceUserRelation(
+        authUser,
+        deleteRelationArgs,
+      );
+      expect(result).toEqual({ ok: true });
+      expect(placeUserRelations.findOne).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.findOne).toHaveBeenCalledWith(
+        deleteRelationArgs.userId,
+      );
+      expect(placeUserRelations.delete).toHaveBeenCalledTimes(1);
+      expect(placeUserRelations.delete).toHaveBeenCalledWith(
+        deleteRelationArgs.relationId,
+      );
+    });
+    it('should fail if relation not found', async () => {
+      placeUserRelations.findOne.mockResolvedValue(null);
+      const result = await service.deletePlaceUserRelation(
+        authUser,
+        deleteRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Relation not found' });
+    });
+    it('should fail if user does not own relation', async () => {
+      const FAIL_USER_ID = 2;
+      placeUserRelations.findOne.mockResolvedValue({
+        id: 1,
+        userId: FAIL_USER_ID,
+      });
+      const result = await service.deletePlaceUserRelation(
+        authUser,
+        deleteRelationArgs,
+      );
+      expect(result).toEqual({
+        ok: false,
+        error: "cannot delete somebodyelse's relation",
+      });
+    });
+    it('should fail on exception', async () => {
+      placeUserRelations.findOne.mockRejectedValue(new Error());
+      const result = await service.deletePlaceUserRelation(
+        authUser,
+        deleteRelationArgs,
+      );
+      expect(result).toEqual({ ok: false, error: 'Could not delete' });
+    });
+  });
 });

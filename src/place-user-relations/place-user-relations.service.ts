@@ -106,7 +106,6 @@ export class PlaceUserRelationsService {
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
-      console.log(relation);
       return { ok: true, relation };
     } catch {
       return { ok: false, error: 'Could not load' };
@@ -167,6 +166,7 @@ export class PlaceUserRelationsService {
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
+
       const newRelation = await this.placeUserRelations.save(
         this.placeUserRelations.create(createPlaceUserRelationInput),
       );

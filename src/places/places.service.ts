@@ -86,7 +86,6 @@ export class PlacesService {
         name,
         coverImg,
       });
-      console.log(newPlace);
       return {
         ok: true,
         place: newPlace,
