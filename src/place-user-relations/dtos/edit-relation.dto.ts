@@ -9,7 +9,7 @@ import { CoreOutput } from 'src/common/dtos/output.dto';
 import { PlaceUserRelation } from '../entities/place-user-relation.entity';
 
 @InputType()
-export class EditRelationInput extends PartialType(
+export class EditPlaceUserRelationInput extends PartialType(
   PickType(PlaceUserRelation, ['memo', 'isLiked', 'isVisited']),
 ) {
   @Field((type) => Number)
@@ -17,4 +17,4 @@ export class EditRelationInput extends PartialType(
 }
 
 @ObjectType()
-export class EditRelationOutput extends CoreOutput {}
+export class EditPlaceUserRelationOutput extends CoreOutput {}

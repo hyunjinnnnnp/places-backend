@@ -5,24 +5,32 @@ import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import {
-  CreateRelationInput,
-  CreateRelationOutput,
+  CreatePlaceUserRelationInput,
+  CreatePlaceUserRelationOutput,
 } from './dtos/create-relation.dto';
 import {
-  DeleteRelationInput,
-  DeleteRelationOutput,
+  DeletePlaceUserRelationInput,
+  DeletePlaceUserRelationOutput,
 } from './dtos/delete-relation.dto';
 import {
-  EditRelationInput,
-  EditRelationOutput,
+  EditPlaceUserRelationInput,
+  EditPlaceUserRelationOutput,
 } from './dtos/edit-relation.dto';
 import {
-  GetUserRelationsInput,
-  GetUserRelationsOutput,
+  GetMyPlaceRelationsInput,
+  GetMyPlaceRelationsOutput,
+} from './dtos/get-my-relations.dto';
+import {
+  GetPlaceUserRelationDetailInput,
+  GetPlaceUserRelationDetailOutput,
+} from './dtos/get-place-user-relation-detail.dto';
+import {
+  GetPlaceUserRelationsByIdInput,
+  GetPlaceUserRelationsByIdOutput,
 } from './dtos/get-user-relations.dto';
 import {
-  SearchUserRelationInput,
-  SearchUserRelationOutput,
+  SearchPlaceUserRelationInput,
+  SearchPlaceUserRelationOutput,
 } from './dtos/search-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 
@@ -30,23 +38,47 @@ import { PlaceUserRelation } from './entities/place-user-relation.entity';
 export class PlaceUserRelationsService {
   constructor(
     @InjectRepository(PlaceUserRelation)
-    private readonly relations: Repository<PlaceUserRelation>,
+    private readonly placeUserRelations: Repository<PlaceUserRelation>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Place) private readonly places: Repository<Place>,
     private readonly paginate: Pagination,
   ) {}
 
-  async getUserRelations({
+  async getMyPlaceRelations(
+    user: User,
+    { page }: GetMyPlaceRelationsInput,
+  ): Promise<GetMyPlaceRelationsOutput> {
+    try {
+      const [relations, totalResults] = await this.paginate.getResults(
+        this.placeUserRelations,
+        page,
+        {
+          user,
+        },
+      );
+      const totalPages = await this.paginate.getTotalPages(totalResults);
+      return {
+        ok: true,
+        relations,
+        totalResults,
+        totalPages,
+      };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async getPlaceUserRelationsByUserId({
     userId,
     page,
-  }: GetUserRelationsInput): Promise<GetUserRelationsOutput> {
+  }: GetPlaceUserRelationsByIdInput): Promise<GetPlaceUserRelationsByIdOutput> {
     try {
       const user = await this.users.findOne(userId);
       if (!user) {
         return { ok: false, error: "User id doesn't exist" };
       }
       const [relations, totalResults] = await this.paginate.getResults(
-        this.relations,
+        this.placeUserRelations,
         page,
         {
           user,
@@ -64,16 +96,28 @@ export class PlaceUserRelationsService {
     }
   }
 
-  async searchUserRelationByName({
-    page,
-    query,
-    userId,
-  }: SearchUserRelationInput): Promise<SearchUserRelationOutput> {
+  async getPlaceUserRelationDetail({
+    relationId,
+  }: GetPlaceUserRelationDetailInput): Promise<GetPlaceUserRelationDetailOutput> {
     try {
-      const user = await this.users.findOne(userId);
-      if (!user) {
-        return { ok: false, error: 'User not found' };
+      const relation = await this.placeUserRelations.findOne(relationId, {
+        relations: ['place'],
+      });
+      if (!relation) {
+        return { ok: false, error: 'Relation not found' };
       }
+      console.log(relation);
+      return { ok: true, relation };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async searchPlaceUserRelationByName(
+    user: User,
+    { page, query }: SearchPlaceUserRelationInput,
+  ): Promise<SearchPlaceUserRelationOutput> {
+    try {
       const findOptions = {
         relations: ['place'],
         where: {
@@ -84,7 +128,7 @@ export class PlaceUserRelationsService {
         },
       };
       const [relations, totalResults] = await this.paginate.getResults(
-        this.relations,
+        this.placeUserRelations,
         page,
         findOptions,
       );
@@ -103,18 +147,12 @@ export class PlaceUserRelationsService {
     }
   }
 
-  async createRelation(
-    createRelationInput: CreateRelationInput,
-  ): Promise<CreateRelationOutput> {
+  async createPlaceUserRelation(
+    user: User,
+    createPlaceUserRelationInput: CreatePlaceUserRelationInput,
+  ): Promise<CreatePlaceUserRelationOutput> {
     try {
-      const { userId, placeId } = createRelationInput;
-      const user = await this.users.findOne(userId);
-      if (!user) {
-        return {
-          ok: false,
-          error: 'User id not found',
-        };
-      }
+      const { placeId } = createPlaceUserRelationInput;
       const place = await this.places.findOne(placeId);
       if (!place) {
         return {
@@ -122,15 +160,15 @@ export class PlaceUserRelationsService {
           error: 'Place id not found',
         };
       }
-      const relation = await this.relations.findOne({
-        userId,
+      const relation = await this.placeUserRelations.findOne({
+        userId: user.id,
         placeId,
       });
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
-      const newRelation = await this.relations.save(
-        this.relations.create(createRelationInput),
+      const newRelation = await this.placeUserRelations.save(
+        this.placeUserRelations.create(createPlaceUserRelationInput),
       );
       return { ok: true, relation: newRelation };
     } catch {
@@ -138,22 +176,22 @@ export class PlaceUserRelationsService {
     }
   }
 
-  async editRelation(
+  async editPlaceUserRelation(
     authUser: User,
-    editRelationInput: EditRelationInput,
-  ): Promise<EditRelationOutput> {
+    editPlaceUserRelationInput: EditPlaceUserRelationInput,
+  ): Promise<EditPlaceUserRelationOutput> {
     try {
-      const { relationId } = editRelationInput;
-      const relation = await this.relations.findOne(relationId);
+      const { relationId } = editPlaceUserRelationInput;
+      const relation = await this.placeUserRelations.findOne(relationId);
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
       if (authUser.id !== relation.userId) {
         return { ok: false, error: "Could not edit somebody else's relation" };
       }
-      await this.relations.save({
+      await this.placeUserRelations.save({
         id: relationId,
-        ...editRelationInput,
+        ...editPlaceUserRelationInput,
       });
       return {
         ok: true,
@@ -162,14 +200,15 @@ export class PlaceUserRelationsService {
       return { ok: false, error: 'Could not edit' };
     }
   }
-  async deleteRelation(
+
+  async deletePlaceUserRelation(
     user: User,
-    { relationId }: DeleteRelationInput,
-  ): Promise<DeleteRelationOutput> {
+    { relationId }: DeletePlaceUserRelationInput,
+  ): Promise<DeletePlaceUserRelationOutput> {
     //if place doesn't exist anymore ?
     //should notice, then delete
     try {
-      const relation = await this.relations.findOne(relationId);
+      const relation = await this.placeUserRelations.findOne(relationId);
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
@@ -179,7 +218,7 @@ export class PlaceUserRelationsService {
           error: "cannot delete somebodyelse's relation",
         };
       }
-      await this.relations.delete(relationId);
+      await this.placeUserRelations.delete(relationId);
 
       return { ok: true };
     } catch {

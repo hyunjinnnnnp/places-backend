@@ -1,8 +1,6 @@
 **_ to dos _**
 
 - pagination [x]
-- check isLiked []
-- check isVisited []
 - follow service.spec []
 - suggestions service.spec []
 

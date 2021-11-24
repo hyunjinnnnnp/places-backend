@@ -4,24 +4,32 @@ import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import {
-  CreateRelationInput,
-  CreateRelationOutput,
+  CreatePlaceUserRelationInput,
+  CreatePlaceUserRelationOutput,
 } from './dtos/create-relation.dto';
 import {
-  DeleteRelationInput,
-  DeleteRelationOutput,
+  DeletePlaceUserRelationInput,
+  DeletePlaceUserRelationOutput,
 } from './dtos/delete-relation.dto';
 import {
-  EditRelationInput,
-  EditRelationOutput,
+  EditPlaceUserRelationInput,
+  EditPlaceUserRelationOutput,
 } from './dtos/edit-relation.dto';
 import {
-  GetUserRelationsInput,
-  GetUserRelationsOutput,
+  GetMyPlaceRelationsInput,
+  GetMyPlaceRelationsOutput,
+} from './dtos/get-my-relations.dto';
+import {
+  GetPlaceUserRelationDetailInput,
+  GetPlaceUserRelationDetailOutput,
+} from './dtos/get-place-user-relation-detail.dto';
+import {
+  GetPlaceUserRelationsByIdInput,
+  GetPlaceUserRelationsByIdOutput,
 } from './dtos/get-user-relations.dto';
 import {
-  SearchUserRelationInput,
-  SearchUserRelationOutput,
+  SearchPlaceUserRelationInput,
+  SearchPlaceUserRelationOutput,
 } from './dtos/search-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 import { PlaceUserRelationsService } from './place-user-relations.service';
@@ -32,54 +40,82 @@ export class PlaceUserRelationsResolver {
     private readonly placeUserRelationsService: PlaceUserRelationsService,
   ) {}
 
-  @Query((returns) => GetUserRelationsOutput)
-  getUserRelations(
-    @Args('input') getUserRelationsInput: GetUserRelationsInput,
-  ): Promise<GetUserRelationsOutput> {
-    return this.placeUserRelationsService.getUserRelations(
-      getUserRelationsInput,
-    );
-  }
-
   @UseGuards(AuthGuard)
-  @Query((returns) => SearchUserRelationOutput)
-  searchRelationByName(
-    @Args('input') searchUserRelationInput: SearchUserRelationInput,
-  ): Promise<SearchUserRelationOutput> {
-    return this.placeUserRelationsService.searchUserRelationByName(
-      searchUserRelationInput,
-    );
-  }
-
-  @UseGuards(AuthGuard)
-  @Mutation((returns) => CreateRelationOutput)
-  createRelation(
-    @Args('input') createRelationInput: CreateRelationInput,
-  ): Promise<CreateRelationOutput> {
-    return this.placeUserRelationsService.createRelation(createRelationInput);
-  }
-
-  @UseGuards(AuthGuard)
-  @Mutation((returns) => EditRelationOutput)
-  editRelation(
-    @AuthUser() authUser: User,
-    @Args('input') editRelationInput: EditRelationInput,
-  ): Promise<EditRelationOutput> {
-    return this.placeUserRelationsService.editRelation(
-      authUser,
-      editRelationInput,
-    );
-  }
-
-  @UseGuards(AuthGuard)
-  @Mutation((returns) => DeleteRelationOutput)
-  deleteRelation(
+  @Query((returns) => GetMyPlaceRelationsOutput)
+  getMyPlaceRelations(
     @AuthUser() user: User,
-    @Args('input') deleteRelationInput: DeleteRelationInput,
-  ): Promise<DeleteRelationOutput> {
-    return this.placeUserRelationsService.deleteRelation(
+    @Args('input') getMyPlaceRelationsInput: GetMyPlaceRelationsInput,
+  ): Promise<GetMyPlaceRelationsOutput> {
+    return this.placeUserRelationsService.getMyPlaceRelations(
       user,
-      deleteRelationInput,
+      getMyPlaceRelationsInput,
+    );
+  }
+
+  @Query((returns) => GetPlaceUserRelationsByIdOutput)
+  getPlaceUserRelationsByUserId(
+    @Args('input') getPlaceUserRelationsInput: GetPlaceUserRelationsByIdInput,
+  ): Promise<GetPlaceUserRelationsByIdOutput> {
+    return this.placeUserRelationsService.getPlaceUserRelationsByUserId(
+      getPlaceUserRelationsInput,
+    );
+  }
+
+  @Query((returns) => GetPlaceUserRelationDetailOutput)
+  getPlaceUserRelationDetail(
+    @Args('input')
+    getPlaceUserRelationDetailInput: GetPlaceUserRelationDetailInput,
+  ): Promise<GetPlaceUserRelationDetailOutput> {
+    return this.placeUserRelationsService.getPlaceUserRelationDetail(
+      getPlaceUserRelationDetailInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Query((returns) => SearchPlaceUserRelationOutput)
+  searchPlaceUserRelationByName(
+    @AuthUser() authUser: User,
+    @Args('input') searchPlaceUserRelationInput: SearchPlaceUserRelationInput,
+  ): Promise<SearchPlaceUserRelationOutput> {
+    return this.placeUserRelationsService.searchPlaceUserRelationByName(
+      authUser,
+      searchPlaceUserRelationInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => CreatePlaceUserRelationOutput)
+  createPlaceUserRelation(
+    @AuthUser() authUser: User,
+    @Args('input') createPlaceUserRelationInput: CreatePlaceUserRelationInput,
+  ): Promise<CreatePlaceUserRelationOutput> {
+    return this.placeUserRelationsService.createPlaceUserRelation(
+      authUser,
+      createPlaceUserRelationInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => EditPlaceUserRelationOutput)
+  editPlaceUserRelation(
+    @AuthUser() authUser: User,
+    @Args('input') editPlaceUserRelationInput: EditPlaceUserRelationInput,
+  ): Promise<EditPlaceUserRelationOutput> {
+    return this.placeUserRelationsService.editPlaceUserRelation(
+      authUser,
+      editPlaceUserRelationInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => DeletePlaceUserRelationOutput)
+  deletePlaceUserRelation(
+    @AuthUser() user: User,
+    @Args('input') deletePlaceUserRelationInput: DeletePlaceUserRelationInput,
+  ): Promise<DeletePlaceUserRelationOutput> {
+    return this.placeUserRelationsService.deletePlaceUserRelation(
+      user,
+      deletePlaceUserRelationInput,
     );
   }
 }

@@ -6,13 +6,10 @@ import {
 import { PlaceUserRelation } from '../entities/place-user-relation.entity';
 
 @InputType()
-export class GetPlaceUserRelationsByIdInput extends PaginationInput {
-  @Field((type) => Number)
-  userId: number;
-}
+export class GetMyPlaceRelationsInput extends PaginationInput {}
 
 @ObjectType()
-export class GetPlaceUserRelationsByIdOutput extends PaginationOutput {
+export class GetMyPlaceRelationsOutput extends PaginationOutput {
   @Field((type) => [PlaceUserRelation], { nullable: true })
   relations?: PlaceUserRelation[];
 }
