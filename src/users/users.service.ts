@@ -27,6 +27,8 @@ import {
   DeleteSuggestionInput,
   DeleteSuggestionOutput,
 } from './dto/delete-suggestion.dto';
+import { Pagination } from 'src/common/common.pagination';
+import { PAGINATION_NUMBER } from 'src/common/common.constants';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +41,7 @@ export class UsersService {
     @InjectRepository(Follow) private readonly follows: Repository<Follow>,
     @InjectRepository(Suggestion)
     private readonly suggestions: Repository<Suggestion>,
+    private readonly pagination: Pagination,
   ) {}
 
   async createAccount({
@@ -168,29 +171,39 @@ export class UsersService {
 
   async getPrivateSuggestions(
     authUser: User,
-    { followerId }: GetPrivateSuggestionsInput,
+    { followerId, page }: GetPrivateSuggestionsInput,
   ): Promise<GetPrivateSuggestionsOutput> {
     try {
-      const [_, followExists] = await this.follows.findAndCount({
+      const [_, isBiDirectionalFollowing] = await this.follows.findAndCount({
         where: [
           { followerId: authUser.id, followingId: followerId },
           { followerId, followingId: authUser.id },
         ],
       });
-      if (followExists !== 2) {
+      if (isBiDirectionalFollowing !== 2) {
         return {
           ok: false,
           error: 'Could not found relations between users',
         };
       }
-      const suggestions = await this.suggestions.find({
+      const findOptions = {
         where: [
           { senderId: authUser.id, receiverId: followerId },
           { senderId: followerId, receiverId: authUser.id },
         ],
-      });
-      //TO DO: pagination
-      return { ok: true, suggestions };
+      };
+      const [suggestions, totalResults] = await this.pagination.getResults(
+        this.suggestions,
+        page,
+        findOptions,
+      );
+      const totalPages = await this.pagination.getTotalPages(totalResults);
+      return {
+        ok: true,
+        suggestions,
+        totalPages,
+        totalResults,
+      };
     } catch {
       return { ok: false, error: 'Could not load' };
     }
@@ -207,7 +220,7 @@ export class UsersService {
         return { ok: false, error: 'User not found' };
       }
       //follow 관계 확인
-      const [follow, isBidirectional] = await this.follows.findAndCount({
+      const [_, isBidirectionalFollow] = await this.follows.findAndCount({
         where: [
           {
             followerId: sender.id,
@@ -216,7 +229,7 @@ export class UsersService {
           { followerId: receiverId, followingId: sender.id },
         ],
       });
-      if (isBidirectional < 2) {
+      if (isBidirectionalFollow < 2) {
         return {
           ok: false,
           error:

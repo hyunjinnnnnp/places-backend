@@ -6,8 +6,10 @@ import { Suggestion } from '../entities/suggestion.entity';
 export class MakeSuggestionInput extends PickType(Suggestion, [
   'receiverId',
   'message',
-  'placeId',
-]) {}
+]) {
+  @Field((type) => Number)
+  placeId: number;
+}
 
 @ObjectType()
 export class MakeSuggestionOutput extends CoreOutput {

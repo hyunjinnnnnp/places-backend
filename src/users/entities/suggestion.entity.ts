@@ -1,5 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { CoreEntity } from 'src/common/entities/core.entity';
+import { Place } from 'src/places/entities/place.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 
@@ -8,8 +9,8 @@ import { User } from './user.entity';
 @Entity()
 export class Suggestion extends CoreEntity {
   @Field((type) => Number, { nullable: true })
-  @Column({ nullable: true })
-  placeId?: number;
+  @ManyToOne((type) => Place, (place) => place.suggestions)
+  place?: Place;
 
   @Field((type) => String, { defaultValue: 'herehere' })
   @Column({ default: 'herehere' })

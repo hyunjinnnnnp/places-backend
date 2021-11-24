@@ -1,7 +1,10 @@
-**_ PlacesService _**
+**_ to dos _**
 
+- pagination [x]
 - check isLiked []
 - check isVisited []
+- follow service.spec []
+- suggestions service.spec []
 
 **_ Follow Entity. User <-> User Relations _**
 
@@ -19,6 +22,5 @@
 
 **_ subscription _**
 
-- create follow -> send message (A is now following now)
-- sending message
-- see all messages
+- create follow -> send message (A is now following now) []
+- sending & receive messages []

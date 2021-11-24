@@ -28,10 +28,11 @@ export class PlacesService {
         this.places,
         page,
       );
+      const totalPages = await this.paginate.getTotalPages(totalResults);
       return {
         ok: true,
         places,
-        totalPages: Math.ceil(totalResults / PAGINATION_NUMBER),
+        totalPages,
         totalResults,
       };
     } catch {

@@ -2,6 +2,7 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
+import { Suggestion } from 'src/users/entities/suggestion.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Category } from './category.entity';
 
@@ -36,4 +37,10 @@ export class Place extends CoreEntity {
     onDelete: 'SET NULL',
   })
   category?: Category;
+
+  @Field((type) => [Suggestion], { nullable: true })
+  @OneToMany((type) => Suggestion, (suggestion) => suggestion.place, {
+    nullable: true,
+  })
+  suggestions?: Suggestion[];
 }
