@@ -10,10 +10,11 @@ import { User } from './user.entity';
 export class Suggestion extends CoreEntity {
   @Field((type) => Number, { nullable: true })
   @ManyToOne((type) => Place, (place) => place.suggestions)
+  @JoinColumn({ name: 'placeId' })
   place?: Place;
 
-  @Field((type) => String, { defaultValue: 'herehere' })
-  @Column({ default: 'herehere' })
+  @Field((type) => String)
+  @Column()
   message: string;
 
   @Field((type) => User)
@@ -25,6 +26,10 @@ export class Suggestion extends CoreEntity {
   @ManyToOne((type) => User, (user) => user.senders)
   @JoinColumn({ name: 'senderId' })
   sender: User;
+
+  @Field((type) => Number)
+  @Column()
+  placeId: number;
 
   @Field((type) => Number)
   @Column()

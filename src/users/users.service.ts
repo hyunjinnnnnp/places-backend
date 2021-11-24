@@ -28,7 +28,6 @@ import {
   DeleteSuggestionOutput,
 } from './dto/delete-suggestion.dto';
 import { Pagination } from 'src/common/common.pagination';
-import { PAGINATION_NUMBER } from 'src/common/common.constants';
 
 @Injectable()
 export class UsersService {
@@ -211,10 +210,9 @@ export class UsersService {
 
   async makeSuggestion(
     sender: User,
-    makeSuggestionInput: MakeSuggestionInput,
+    { message, receiverId, placeId }: MakeSuggestionInput,
   ): Promise<MakeSuggestionOutput> {
     try {
-      const { receiverId } = makeSuggestionInput;
       const receiver = await this.users.findOne(receiverId);
       if (!receiver) {
         return { ok: false, error: 'User not found' };
@@ -237,7 +235,7 @@ export class UsersService {
         };
       }
       const suggestion = await this.suggestions.save(
-        this.suggestions.create({ ...makeSuggestionInput, sender, receiver }),
+        this.suggestions.create({ sender, receiver, message, placeId }),
       );
       return { ok: true, suggestion };
     } catch {

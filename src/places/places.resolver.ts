@@ -5,9 +5,11 @@ import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
 import {
-  GetAllPlacesInput,
-  GetAllPlacesOutput,
-} from './dtos/get-all-places.dto';
+  GetAllPlacesPaginatedInput,
+  GetAllPlacesPaginatedOutput,
+} from './dtos/get-all-places-paginated.dto';
+import { GetAllPlacesOutput } from './dtos/get-all-places.dto';
+
 import { Place } from './entities/place.entity';
 import { PlacesService } from './places.service';
 
@@ -15,13 +17,16 @@ import { PlacesService } from './places.service';
 export class PlacesResolver {
   constructor(private readonly placesService: PlacesService) {}
 
-  @Query((returns) => GetAllPlacesOutput)
-  places(
-    @Args('input') getAllPlacesInput: GetAllPlacesInput,
+  @Query((returns) => GetAllPlacesPaginatedOutput)
+  getAllPlacesPaginated(
+    @Args('input') getAllPlacesPaginatedInput: GetAllPlacesPaginatedInput,
   ): Promise<GetAllPlacesOutput> {
-    // for map & paginated list
-    //to do : pagination, input type
-    return this.placesService.getAllPlaces(getAllPlacesInput);
+    return this.placesService.getAllPlacesPaginated(getAllPlacesPaginatedInput);
+  }
+
+  @Query((returns) => GetAllPlacesOutput)
+  getAllPlaces(): Promise<GetAllPlacesOutput> {
+    return this.placesService.getAllPlaces();
   }
 
   @UseGuards(AuthGuard)

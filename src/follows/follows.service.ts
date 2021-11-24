@@ -3,10 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
-  AcceptFollowInput,
-  AcceptFollowOutput,
-} from './dtos/accept-follow.dto';
-import {
   CreateFollowInput,
   CreateFollowOutput,
 } from './dtos/create-follow.dto';

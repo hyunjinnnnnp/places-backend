@@ -4,11 +4,11 @@ import { Suggestion } from '../entities/suggestion.entity';
 
 @InputType()
 export class MakeSuggestionInput extends PickType(Suggestion, [
-  'receiverId',
   'message',
+  'receiverId',
 ]) {
-  @Field((type) => Number)
-  placeId: number;
+  @Field((type) => Number, { nullable: true })
+  placeId?: number;
 }
 
 @ObjectType()

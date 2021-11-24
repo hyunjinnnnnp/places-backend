@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PAGINATION_NUMBER } from 'src/common/common.constants';
 import { Pagination } from 'src/common/common.pagination';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
@@ -8,9 +7,11 @@ import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
 import {
-  GetAllPlacesInput,
-  GetAllPlacesOutput,
-} from './dtos/get-all-places.dto';
+  GetAllPlacesPaginatedInput,
+  GetAllPlacesPaginatedOutput,
+} from './dtos/get-all-places-paginated.dto';
+import { GetAllPlacesOutput } from './dtos/get-all-places.dto';
+
 import { Place } from './entities/place.entity';
 
 @Injectable()
@@ -22,7 +23,9 @@ export class PlacesService {
     private readonly paginate: Pagination,
   ) {}
 
-  async getAllPlaces({ page }: GetAllPlacesInput): Promise<GetAllPlacesOutput> {
+  async getAllPlacesPaginated({
+    page,
+  }: GetAllPlacesPaginatedInput): Promise<GetAllPlacesPaginatedOutput> {
     try {
       const [places, totalResults] = await this.paginate.getResults(
         this.places,
@@ -34,6 +37,18 @@ export class PlacesService {
         places,
         totalPages,
         totalResults,
+      };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async getAllPlaces(): Promise<GetAllPlacesOutput> {
+    try {
+      const places = await this.places.find();
+      return {
+        ok: true,
+        places,
       };
     } catch {
       return { ok: false, error: 'Could not load' };

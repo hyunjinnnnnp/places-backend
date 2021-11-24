@@ -7,19 +7,19 @@ import { ILike, Repository } from 'typeorm';
 import {
   CreatePlaceUserRelationInput,
   CreatePlaceUserRelationOutput,
-} from './dtos/create-relation.dto';
+} from './dtos/create-place-user-relation.dto';
 import {
   DeletePlaceUserRelationInput,
   DeletePlaceUserRelationOutput,
-} from './dtos/delete-relation.dto';
+} from './dtos/delete-place-user-relation.dto';
 import {
   EditPlaceUserRelationInput,
   EditPlaceUserRelationOutput,
-} from './dtos/edit-relation.dto';
+} from './dtos/edit-place-user-relation.dto';
 import {
   GetMyPlaceRelationsInput,
   GetMyPlaceRelationsOutput,
-} from './dtos/get-my-relations.dto';
+} from './dtos/get-my-place-relations.dto';
 import {
   GetPlaceUserRelationDetailInput,
   GetPlaceUserRelationDetailOutput,
@@ -27,11 +27,11 @@ import {
 import {
   GetPlaceUserRelationsByIdInput,
   GetPlaceUserRelationsByIdOutput,
-} from './dtos/get-user-relations.dto';
+} from './dtos/get-place-user-relations.dto';
 import {
   SearchPlaceUserRelationInput,
   SearchPlaceUserRelationOutput,
-} from './dtos/search-user-relations.dto';
+} from './dtos/search-place-user-relations.dto';
 import { PlaceUserRelation } from './entities/place-user-relation.entity';
 
 @Injectable()
