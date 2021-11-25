@@ -10,7 +10,6 @@ export class Follow extends CoreEntity {
   @Field((type) => User)
   @ManyToOne((type) => User, (user) => user.following, {
     onDelete: 'CASCADE',
-    // cascade: true,
   })
   @JoinColumn({
     name: 'followingId',

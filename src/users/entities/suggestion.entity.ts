@@ -27,9 +27,9 @@ export class Suggestion extends CoreEntity {
   @JoinColumn({ name: 'senderId' })
   sender: User;
 
-  @Field((type) => Number)
-  @Column()
-  placeId: number;
+  @Field((type) => Number, { nullable: true })
+  @Column({ nullable: true })
+  placeId?: number;
 
   @Field((type) => Number)
   @Column()

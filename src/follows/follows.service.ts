@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -58,18 +58,22 @@ export class FollowsService {
         return { ok: false, error: 'User not found' };
       }
       //[ Follow: { id, followingId, followerId, isChecked } ]
-      //user를 팔로잉하는 follows를 찾는다
+      //user를 팔로잉 중인 follows[]를 찾는다
       const follows = await this.follows.find({
         where: { followingId: userId },
       });
-      //팔로우에서 followerId를 순회하며 각 유저 객체를 찾는다
-      const followers = await Promise.all(
-        follows.map(async (follow: Follow): Promise<User> => {
-          const id = follow.followerId;
-          const followers = await this.users.findOne({ id });
-          return followers;
-        }),
-      );
+      if (!follows) {
+        return { ok: false, error: 'follow not found' };
+      }
+      const followerIds = follows.map((follow) => {
+        return follow.followerId;
+      });
+      const where = followerIds.map((mappedId) => {
+        return { id: mappedId };
+      });
+      const followers = await this.users.find({
+        where,
+      });
       return { ok: true, followers };
     } catch {
       return { ok: false, error: 'Could not load followers info' };
@@ -88,13 +92,18 @@ export class FollowsService {
       const follows = await this.follows.find({
         where: { followerId: userId },
       });
-      const following = await Promise.all(
-        follows.map(async (follow: Follow): Promise<User> => {
-          const id = follow.followingId;
-          const followingUsers = await this.users.findOne({ id });
-          return followingUsers;
-        }),
-      );
+      if (!follows) {
+        return { ok: false, error: 'follow not found' };
+      }
+      const followingIds = follows.map((follow) => {
+        return follow.followingId;
+      });
+      const where = followingIds.map((mappedId) => {
+        return { id: mappedId };
+      });
+      const following = await this.users.find({
+        where,
+      });
       return { ok: true, following };
     } catch {
       return { ok: false, error: 'Could not load' };
@@ -102,11 +111,11 @@ export class FollowsService {
   }
 
   async createFollow(
-    { id: followerId }: User,
+    authUser: User,
     { followingId }: CreateFollowInput,
   ): Promise<CreateFollowOutput> {
     try {
-      const follower = await this.users.findOne(followerId);
+      const follower = await this.users.findOne(authUser.id);
       if (!follower) {
         return { ok: false, error: 'Follower not found' };
       }
@@ -114,11 +123,11 @@ export class FollowsService {
       if (!following) {
         return { ok: false, error: 'Following user not found' };
       }
-      const exists = await this.follows.findOne({
-        followerId,
+      const isFollowExists = await this.follows.findOne({
+        followerId: authUser.id,
         followingId,
       });
-      if (exists) {
+      if (isFollowExists) {
         return {
           ok: false,
           error: 'already following',
@@ -127,10 +136,12 @@ export class FollowsService {
       const follow = await this.follows.save(
         this.follows.create({ follower, following }),
       );
+      // follower: User
+      // follower.following: Follow[];
       follower.following.push(follow);
       following.followers.push(follow);
-      await this.users.save(follower);
-      await this.users.save(following);
+      const a = await this.users.save(follower);
+      const b = await this.users.save(following);
       //TO DO : send message to following user.
       return { ok: true };
     } catch {
