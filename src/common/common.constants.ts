@@ -4,3 +4,4 @@ export const PUB_SUB = 'PUB_SUB';
 
 //-------------------PubSub----------------//
 export const NEW_PENDING_FOLLOW = 'NEW_PENDING_FOLLOW';
+export const NEW_PENDING_SUGGESTION = 'NEW_PENDING_SUGGESTION';

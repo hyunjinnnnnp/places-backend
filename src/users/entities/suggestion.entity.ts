@@ -9,7 +9,7 @@ import { User } from './user.entity';
 @ObjectType()
 @Entity()
 export class Suggestion extends CoreEntity {
-  @Field((type) => Number, { nullable: true })
+  @Field((type) => Place, { nullable: true })
   @ManyToOne((type) => Place, (place) => place.suggestions)
   @JoinColumn({ name: 'placeId' })
   place?: Place;

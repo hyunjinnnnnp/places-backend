@@ -1,7 +1,9 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Inject, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { NEW_PENDING_SUGGESTION, PUB_SUB } from 'src/common/common.constants';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -17,17 +19,21 @@ import {
 } from './dto/get-private-suggestions.dto';
 import { LoginInput, LoginOutput } from './dto/login.dto';
 import {
-  MakeSuggestionInput,
-  MakeSuggestionOutput,
-} from './dto/make-suggestion.dto';
+  CreateSuggestionInput,
+  CreateSuggestionOutput,
+} from './dto/create-suggestion.dto';
 import { UserProfileInput, UserProfileOutput } from './dto/user-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dto/verify-email.dto';
+import { Suggestion } from './entities/suggestion.entity';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @Resolver((of) => User)
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Query((returns) => User)
   @UseGuards(AuthGuard)
@@ -86,12 +92,25 @@ export class UsersResolver {
   }
 
   @UseGuards(AuthGuard)
-  @Mutation((returns) => MakeSuggestionOutput)
-  makeSuggestion(
+  @Mutation((returns) => CreateSuggestionOutput)
+  createSuggestion(
     @AuthUser() authUser: User,
-    @Args('input') makeSuggestionInput: MakeSuggestionInput,
-  ): Promise<MakeSuggestionOutput> {
-    return this.usersService.makeSuggestion(authUser, makeSuggestionInput);
+    @Args('input') createSuggestionInput: CreateSuggestionInput,
+  ): Promise<CreateSuggestionOutput> {
+    return this.usersService.createSuggestion(authUser, createSuggestionInput);
+  }
+
+  @UseGuards(AuthGuard)
+  @Subscription((returns) => Suggestion, {
+    filter: ({ pendingSuggestion: { receiverId } }, _, { user }) => {
+      return receiverId === user.id;
+    },
+    resolve: ({ pendingSuggestion: { suggestion } }) => {
+      return suggestion;
+    },
+  })
+  pendingSuggestion() {
+    return this.pubSub.asyncIterator(NEW_PENDING_SUGGESTION);
   }
 
   @UseGuards(AuthGuard)

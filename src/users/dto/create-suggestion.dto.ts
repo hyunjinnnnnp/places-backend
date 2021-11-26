@@ -3,7 +3,7 @@ import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Suggestion } from '../entities/suggestion.entity';
 
 @InputType()
-export class MakeSuggestionInput extends PickType(Suggestion, [
+export class CreateSuggestionInput extends PickType(Suggestion, [
   'message',
   'receiverId',
 ]) {
@@ -12,7 +12,7 @@ export class MakeSuggestionInput extends PickType(Suggestion, [
 }
 
 @ObjectType()
-export class MakeSuggestionOutput extends CoreOutput {
+export class CreateSuggestionOutput extends CoreOutput {
   @Field((type) => Suggestion, { nullable: true })
   suggestion?: Suggestion;
 }

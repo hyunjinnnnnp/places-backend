@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -13,9 +13,9 @@ import { Verification } from './entities/verification.entity';
 import { VerifyEmailInput, VerifyEmailOutput } from './dto/verify-email.dto';
 import { MailService } from 'src/mail/mail.service';
 import {
-  MakeSuggestionInput,
-  MakeSuggestionOutput,
-} from './dto/make-suggestion.dto';
+  CreateSuggestionInput,
+  CreateSuggestionOutput,
+} from './dto/create-suggestion.dto';
 import { User } from './entities/user.entity';
 import { Follow } from 'src/follows/entities/follow.entity';
 import { Suggestion } from './entities/suggestion.entity';
@@ -28,11 +28,15 @@ import {
   DeleteSuggestionOutput,
 } from './dto/delete-suggestion.dto';
 import { Pagination } from 'src/common/common.pagination';
+import { NEW_PENDING_SUGGESTION, PUB_SUB } from 'src/common/common.constants';
+import { PubSub } from 'graphql-subscriptions';
+import { Place } from 'src/places/entities/place.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(Place) private readonly places: Repository<Place>,
     @InjectRepository(Verification)
     private readonly verification: Repository<Verification>,
     private readonly jwtService: JwtService,
@@ -41,6 +45,7 @@ export class UsersService {
     @InjectRepository(Suggestion)
     private readonly suggestions: Repository<Suggestion>,
     private readonly pagination: Pagination,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   async createAccount(
@@ -227,14 +232,18 @@ export class UsersService {
     }
   }
 
-  async makeSuggestion(
+  async createSuggestion(
     sender: User,
-    { message, receiverId, placeId }: MakeSuggestionInput,
-  ): Promise<MakeSuggestionOutput> {
+    { message, receiverId, placeId }: CreateSuggestionInput,
+  ): Promise<CreateSuggestionOutput> {
     try {
       const receiver = await this.users.findOne(receiverId);
       if (!receiver) {
         return { ok: false, error: 'User not found' };
+      }
+      const place = await this.places.findOne(placeId);
+      if (!place) {
+        return { ok: false, error: 'Place not found' };
       }
       //follow 관계 확인
       const [_, isBidirectionalFollow] = await this.follows.findAndCount({
@@ -254,8 +263,13 @@ export class UsersService {
         };
       }
       const suggestion = await this.suggestions.save(
-        this.suggestions.create({ sender, receiver, message, placeId }),
+        this.suggestions.create({ sender, receiver, message, place }),
       );
+      if (suggestion) {
+        await this.pubSub.publish(NEW_PENDING_SUGGESTION, {
+          pendingSuggestion: { suggestion, receiverId },
+        });
+      }
       return { ok: true, suggestion };
     } catch {
       return { ok: false, error: 'Could not make' };

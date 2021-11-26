@@ -24,4 +24,4 @@
   **_ subscription _**
 
 - Pending Follows [x]
-- Pending Suggestions []
+- Pending Suggestions [x]
