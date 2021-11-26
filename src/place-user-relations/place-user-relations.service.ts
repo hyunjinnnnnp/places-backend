@@ -18,6 +18,10 @@ import {
   EditPlaceUserRelationOutput,
 } from './dtos/edit-place-user-relation.dto';
 import {
+  FindMyPlacesByMemoInput,
+  FindMyPlacesByMemoOutput,
+} from './dtos/find-place-user-relations-by-memo.dto';
+import {
   GetMyPlaceRelationsInput,
   GetMyPlaceRelationsOutput,
 } from './dtos/get-my-place-relations.dto';
@@ -65,6 +69,21 @@ export class PlaceUserRelationsService {
         totalResults,
         totalPages,
       };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async findMyPlacesByMemo({
+    query,
+  }: FindMyPlacesByMemoInput): Promise<FindMyPlacesByMemoOutput> {
+    try {
+      const relations = await this.placeUserRelations.find({
+        where: {
+          memo: ILike(`%${query}%`),
+        },
+      });
+      return { ok: true, relations };
     } catch {
       return { ok: false, error: 'Could not load' };
     }

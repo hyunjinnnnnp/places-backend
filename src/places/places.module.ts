@@ -13,10 +13,10 @@ import { CategoryRepository } from './repositories/category.repository';
     TypeOrmModule.forFeature([
       Place,
       PlaceUserRelation,
-      CategoryRepository,
       Category,
+      CategoryRepository,
     ]),
   ],
-  providers: [PlacesResolver, PlacesService, Pagination, CategoryRepository],
+  providers: [PlacesResolver, PlacesService, Pagination],
 })
 export class PlacesModule {}

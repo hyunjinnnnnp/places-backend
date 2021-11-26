@@ -27,9 +27,9 @@ export class PlacesService {
     @InjectRepository(PlaceUserRelation)
     private readonly relations: Repository<PlaceUserRelation>,
     private readonly paginate: Pagination,
-    private readonly categoryRepository: CategoryRepository,
     @InjectRepository(Category)
     private readonly categories: Repository<Category>,
+    private readonly categoryRepository: CategoryRepository,
   ) {}
 
   async getAllPlacesPaginated({
@@ -111,7 +111,6 @@ export class PlacesService {
       return { ok: false, error: 'Could not create' };
     }
   }
-
   async editPlace({
     placeId,
     name,

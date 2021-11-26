@@ -16,6 +16,10 @@ import {
   EditPlaceUserRelationOutput,
 } from './dtos/edit-place-user-relation.dto';
 import {
+  FindMyPlacesByMemoInput,
+  FindMyPlacesByMemoOutput,
+} from './dtos/find-place-user-relations-by-memo.dto';
+import {
   GetMyPlaceRelationsInput,
   GetMyPlaceRelationsOutput,
 } from './dtos/get-my-place-relations.dto';
@@ -49,6 +53,16 @@ export class PlaceUserRelationsResolver {
     return this.placeUserRelationsService.getMyPlaceRelations(
       user,
       getMyPlaceRelationsInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Query((returns) => FindMyPlacesByMemoOutput)
+  findMyPlaceRelationsByMemo(
+    findMyPlacesByMemoInput: FindMyPlacesByMemoInput,
+  ): Promise<FindMyPlacesByMemoOutput> {
+    return this.placeUserRelationsService.findMyPlacesByMemo(
+      findMyPlacesByMemoInput,
     );
   }
 

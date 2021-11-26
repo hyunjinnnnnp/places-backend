@@ -18,8 +18,6 @@
 
 **_ 🤔 _**
 
-- search by relations memo []
-- search by category name(place) [x]
 - modify pagination by case 1.map 2.paginated
 
   **_ subscription _**
