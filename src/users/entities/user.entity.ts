@@ -18,9 +18,19 @@ export class User extends CoreEntity {
   email: string;
 
   @Field((type) => String)
+  @Column({ unique: true })
+  @IsString()
+  name: string;
+
+  @Field((type) => String)
   @Column({ select: false })
   @IsString()
   password: string;
+
+  @Field((type) => String, { nullable: true }) //default img url
+  @Column({ nullable: true })
+  @IsString()
+  avatarUrl?: string;
 
   @Field((type) => Boolean)
   @Column({ default: false })
@@ -39,14 +49,14 @@ export class User extends CoreEntity {
     //팔로우 생성과 반대
     //user가 follower로써 상대를 추가한다. >> 그 팔로우 내역을 following[]에 저장한다.
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   following?: Follow[];
 
   @Field((type) => [Follow], { nullable: true })
   @OneToMany((type) => Follow, (follow) => follow.following, {
     nullable: true,
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   followers?: Follow[];
 

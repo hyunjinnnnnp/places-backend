@@ -1,8 +1,6 @@
-**_ to dos _**
-
 - pagination [x]
-- follow service.spec []
-- suggestions service.spec []
+- follow service.spec [x]
+- suggestions service.spec [x]
 
 **_ Follow Entity. User <-> User Relations _**
 
@@ -18,7 +16,12 @@
 - suggestion entity [x]
 - get, send, delete suggestion [x]
 
-**_ subscription _**
+**_ 🤔 _**
 
-- create follow -> send message (A is now following now) []
-- sending & receive messages []
+- follow - isChecked ?
+- category
+
+  **_ subscription _**
+
+- Pending Follows [x]
+- Pending Suggestions []

@@ -1,5 +1,7 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PubSub } from 'graphql-subscriptions';
+import { NEW_PENDING_FOLLOW, PUB_SUB } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
@@ -26,6 +28,7 @@ export class FollowsService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Follow) private readonly follows: Repository<Follow>,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   async getUserFollows({
@@ -115,35 +118,44 @@ export class FollowsService {
     { followingId }: CreateFollowInput,
   ): Promise<CreateFollowOutput> {
     try {
-      const follower = await this.users.findOne(authUser.id);
-      if (!follower) {
-        return { ok: false, error: 'Follower not found' };
-      }
-      const following = await this.users.findOne(followingId);
+      const follower = await this.users.findOne(authUser.id, {
+        relations: ['following'],
+      });
+      const following = await this.users.findOne(followingId, {
+        relations: ['followers'],
+      });
       if (!following) {
         return { ok: false, error: 'Following user not found' };
       }
-      const isFollowExists = await this.follows.findOne({
-        followerId: authUser.id,
-        followingId,
+      const isAlreadyFollowing = await this.follows.findOne({
+        follower,
+        following,
       });
-      if (isFollowExists) {
+      if (isAlreadyFollowing) {
         return {
           ok: false,
           error: 'already following',
         };
       }
       const follow = await this.follows.save(
-        this.follows.create({ follower, following }),
+        this.follows.create({
+          follower,
+          following,
+        }),
       );
       // follower: User
       // follower.following: Follow[];
-      follower.following.push(follow);
-      following.followers.push(follow);
-      const a = await this.users.save(follower);
-      const b = await this.users.save(following);
-      //TO DO : send message to following user.
-      return { ok: true };
+      if (follow) {
+        follower.following.push(follow);
+        following.followers.push(follow);
+        await this.users.save(follower);
+        await this.users.save(following);
+        await this.pubSub.publish(NEW_PENDING_FOLLOW, {
+          //trigger the async iterator
+          pendingFollows: { followingId, follower },
+        });
+        return { ok: true };
+      }
     } catch {
       return { ok: false, error: 'Could not create' };
     }
@@ -154,11 +166,26 @@ export class FollowsService {
     { followingId }: UnfollowInput,
   ): Promise<UnfollowOutput> {
     try {
+      const authUser = await this.users.findOne(followerId, {
+        relations: ['following'],
+      }); // for test
+      if (!authUser) {
+        return { ok: false, error: 'User not found' };
+      }
+      const following = await this.users.findOne(followingId, {
+        relations: ['followers'],
+      }); //relations for test
+      // console.log(authUser, following); //should remove this
+      if (!following) {
+        return { ok: false, error: 'Following user not found' };
+      }
       const follow = await this.follows.findOne({ followingId, followerId });
       if (!follow) {
         return { ok: false, error: 'Follow not found' };
       }
       await this.follows.remove(follow);
+      //should remove also follwerId, followingId
+      //removed id but follow instance remains
       return { ok: true };
     } catch {
       return { ok: false, error: 'Could not unfollowed' };

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Pagination } from 'src/common/common.pagination';
 import { Follow } from '../follows/entities/follow.entity';
@@ -8,6 +8,7 @@ import { Verification } from './entities/verification.entity';
 import { UsersResolver } from './users.resolver';
 import { UsersService } from './users.service';
 
+@Global()
 @Module({
   imports: [TypeOrmModule.forFeature([User, Verification, Follow, Suggestion])],
   providers: [UsersResolver, UsersService, Pagination],

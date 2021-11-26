@@ -1,4 +1,5 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { IsNumber, IsString } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { Place } from 'src/places/entities/place.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
@@ -15,6 +16,7 @@ export class Suggestion extends CoreEntity {
 
   @Field((type) => String)
   @Column()
+  @IsString()
   message: string;
 
   @Field((type) => User)

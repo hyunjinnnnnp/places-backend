@@ -1,7 +1,9 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Inject, UseGuards } from '@nestjs/common';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/auth-user.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { NEW_PENDING_FOLLOW, PUB_SUB } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import {
   AcceptFollowInput,
@@ -29,7 +31,10 @@ import { FollowsService } from './follows.service';
 
 @Resolver((of) => Follow)
 export class FollowsResolver {
-  constructor(private readonly followsService: FollowsService) {}
+  constructor(
+    private readonly followsService: FollowsService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Query((returns) => GetUserFollowsOutput)
   getUserFollows(
@@ -79,4 +84,16 @@ export class FollowsResolver {
   // ): Promise<AcceptFollowOutput> {
   //   return this.followsService.acceptFollow(authUser, acceptFollowInput);
   // }
+
+  @UseGuards(AuthGuard)
+  @Subscription((returns) => User, {
+    filter: ({ pendingFollows: { followingId } }, _, { user }) => {
+      //payload, variables, context from pubsub published (service part)
+      return followingId === user.id; //always should return boolean
+    },
+    resolve: ({ pendingFollows: { follower } }) => follower, //resolve return value
+  })
+  pendingFollows() {
+    return this.pubSub.asyncIterator(NEW_PENDING_FOLLOW);
+  }
 }

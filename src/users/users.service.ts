@@ -43,20 +43,33 @@ export class UsersService {
     private readonly pagination: Pagination,
   ) {}
 
-  async createAccount({
-    email,
-    password,
-  }: CreateAccountInput): Promise<CreateAccountOutput> {
+  async createAccount(
+    createAccountInput: CreateAccountInput,
+  ): Promise<CreateAccountOutput> {
     try {
-      const exists = await this.users.findOne({ email });
-      if (exists) {
+      const emailExists = await this.users.findOne({
+        email: createAccountInput.email,
+      });
+      if (emailExists) {
         return {
           ok: false,
           error: 'There is a user with this email already',
         };
       }
+      const nameExists = await this.users.findOne({
+        name: createAccountInput.name,
+      });
+      if (nameExists) {
+        return {
+          ok: false,
+          error: 'There is a user with this name already',
+        };
+      }
+      if (createAccountInput.avatarUrl) {
+        //avatar upload
+      }
       const user = await this.users.save(
-        this.users.create({ email, password }),
+        this.users.create({ ...createAccountInput }),
       );
       const verification = await this.verification.save(
         this.verification.create({ user }),
@@ -125,7 +138,7 @@ export class UsersService {
 
   async editProfile(
     userId: number,
-    { email, password }: EditProfileInput,
+    { email, password, name, avatarUrl }: EditProfileInput,
   ): Promise<EditProfileOutput> {
     try {
       //@BeforeUpdate for hashing password
@@ -143,6 +156,12 @@ export class UsersService {
       }
       if (password) {
         user.password = password;
+      }
+      if (name) {
+        user.name = name;
+      }
+      if (avatarUrl) {
+        user.name = name;
       }
       await this.users.save(user);
       return { ok: true };
