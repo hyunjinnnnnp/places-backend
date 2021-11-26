@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pagination } from 'src/common/common.pagination';
+import { Category } from 'src/places/entities/category.entity';
 import { Place } from 'src/places/entities/place.entity';
 import { User } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
@@ -41,6 +42,7 @@ export class PlaceUserRelationsService {
     private readonly placeUserRelations: Repository<PlaceUserRelation>,
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Place) private readonly places: Repository<Place>,
+    @InjectRepository(Category)
     private readonly paginate: Pagination,
   ) {}
 
@@ -166,9 +168,11 @@ export class PlaceUserRelationsService {
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
-
       const newRelation = await this.placeUserRelations.save(
-        this.placeUserRelations.create(createPlaceUserRelationInput),
+        this.placeUserRelations.create({
+          ...createPlaceUserRelationInput,
+          user,
+        }),
       );
       return { ok: true, relation: newRelation };
     } catch {

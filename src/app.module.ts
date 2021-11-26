@@ -18,6 +18,7 @@ import { Follow } from './follows/entities/follow.entity';
 import { FollowsModule } from './follows/follows.module';
 import { Suggestion } from './users/entities/suggestion.entity';
 import { CommonModule } from './common/common.module';
+import { CategoryRepository } from './places/repositories/category.repository';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { CommonModule } from './common/common.module';
     PlaceUserRelationsModule,
     FollowsModule,
     CommonModule,
+    CategoryRepository,
   ],
   controllers: [],
   providers: [],

@@ -6,6 +6,9 @@ import { Place } from '../entities/place.entity';
 export class CreatePlaceInput extends PickType(Place, ['name', 'address']) {
   @Field((type) => String, { nullable: true })
   coverImg?: string;
+
+  @Field((type) => String, { nullable: true })
+  categoryName?: string;
 }
 
 @ObjectType()

@@ -6,10 +6,6 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { NEW_PENDING_FOLLOW, PUB_SUB } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import {
-  AcceptFollowInput,
-  AcceptFollowOutput,
-} from './dtos/accept-follow.dto';
-import {
   CreateFollowInput,
   CreateFollowOutput,
 } from './dtos/create-follow.dto';
@@ -76,14 +72,6 @@ export class FollowsResolver {
   ): Promise<UnfollowOutput> {
     return this.followsService.unFollow(authUser, unFollowInput);
   }
-  // @UseGuards(AuthGuard)
-  // @Mutation((retuns) => AcceptFollowOutput)
-  // acceptFollow(
-  //   @AuthUser() authUser: User,
-  //   @Args('input') acceptFollowInput: AcceptFollowInput,
-  // ): Promise<AcceptFollowOutput> {
-  //   return this.followsService.acceptFollow(authUser, acceptFollowInput);
-  // }
 
   @UseGuards(AuthGuard)
   @Subscription((returns) => User, {

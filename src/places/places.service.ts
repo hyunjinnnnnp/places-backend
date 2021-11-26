@@ -7,12 +7,18 @@ import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
 import {
+  FindPlacesByCategoryInput,
+  FindPlacesByCategoryOutput,
+} from './dtos/find-places-by-category.dto';
+import { GetAllCategoriesOutput } from './dtos/get-all-categories.dto';
+import {
   GetAllPlacesPaginatedInput,
   GetAllPlacesPaginatedOutput,
 } from './dtos/get-all-places-paginated.dto';
 import { GetAllPlacesOutput } from './dtos/get-all-places.dto';
-
+import { Category } from './entities/category.entity';
 import { Place } from './entities/place.entity';
+import { CategoryRepository } from './repositories/category.repository';
 
 @Injectable()
 export class PlacesService {
@@ -21,6 +27,9 @@ export class PlacesService {
     @InjectRepository(PlaceUserRelation)
     private readonly relations: Repository<PlaceUserRelation>,
     private readonly paginate: Pagination,
+    private readonly categoryRepository: CategoryRepository,
+    @InjectRepository(Category)
+    private readonly categories: Repository<Category>,
   ) {}
 
   async getAllPlacesPaginated({
@@ -55,11 +64,47 @@ export class PlacesService {
     }
   }
 
+  async allCategories(): Promise<GetAllCategoriesOutput> {
+    try {
+      const categories = await this.categories.find();
+      return {
+        ok: true,
+        categories,
+      };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  //1. map 2.paginated
+  async findPlacesByCategoryId({
+    categoryId,
+  }: FindPlacesByCategoryInput): Promise<FindPlacesByCategoryOutput> {
+    try {
+      const category = await this.categories.findOne({ id: categoryId });
+      if (!category) {
+        return { ok: false, error: 'Category not found' };
+      }
+      const places = await this.places.find({ categoryId });
+      return { ok: true, places };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
   async createPlace(
     createPlaceInput: CreatePlaceInput,
   ): Promise<CreatePlaceOutput> {
     try {
-      const place = this.places.create({ ...createPlaceInput });
+      const place = await this.places.create({
+        name: createPlaceInput.name,
+        address: createPlaceInput.address,
+      });
+      const category = await this.categoryRepository.getOrCreate(
+        createPlaceInput.categoryName,
+        createPlaceInput.coverImg,
+      );
+      place.category = category;
       await this.places.save(place);
       return { ok: true, place };
     } catch {

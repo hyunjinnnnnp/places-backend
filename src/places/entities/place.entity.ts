@@ -38,6 +38,10 @@ export class Place extends CoreEntity {
   })
   category?: Category;
 
+  @Field((type) => Number, { nullable: true })
+  @Column()
+  categoryId?: number;
+
   @Field((type) => [Suggestion], { nullable: true })
   @OneToMany((type) => Suggestion, (suggestion) => suggestion.place, {
     nullable: true,

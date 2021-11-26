@@ -16,7 +16,12 @@ export class Category extends CoreEntity {
   @Field((type) => String, { nullable: true })
   @Column({ nullable: true })
   @IsString()
-  coverImg: string;
+  coverImg?: string;
+
+  @Field((type) => String, { nullable: true })
+  @Column({ nullable: true, unique: true })
+  @IsString()
+  slug: string;
 
   @Field((type) => [Place], { nullable: true })
   @OneToMany((type) => Place, (place) => place.category, { nullable: true })

@@ -1,9 +1,14 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { GetAllCategoriesOutput } from './dtos/get-all-categories.dto';
 import { CreatePlaceInput, CreatePlaceOutput } from './dtos/create-place.dto';
 import { DeletePlaceInput, DeletePlaceOutput } from './dtos/delete-place.dto';
 import { EditPlaceInput, EditPlaceOutput } from './dtos/edit-place.dto';
+import {
+  FindPlacesByCategoryInput,
+  FindPlacesByCategoryOutput,
+} from './dtos/find-places-by-category.dto';
 import {
   GetAllPlacesPaginatedInput,
   GetAllPlacesPaginatedOutput,
@@ -27,6 +32,19 @@ export class PlacesResolver {
   @Query((returns) => GetAllPlacesOutput)
   getAllPlaces(): Promise<GetAllPlacesOutput> {
     return this.placesService.getAllPlaces();
+  }
+
+  @Query((returns) => GetAllCategoriesOutput)
+  allCategories(): Promise<GetAllCategoriesOutput> {
+    return this.placesService.allCategories();
+  }
+
+  @Query((returns) => FindPlacesByCategoryOutput)
+  findPlacesByCategoryId(
+    @Args('input')
+    findPlacesByCategoryInput: FindPlacesByCategoryInput,
+  ): Promise<FindPlacesByCategoryOutput> {
+    return this.placesService.findPlacesByCategoryId(findPlacesByCategoryInput);
   }
 
   @UseGuards(AuthGuard)

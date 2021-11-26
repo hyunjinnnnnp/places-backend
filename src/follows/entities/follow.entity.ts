@@ -32,8 +32,4 @@ export class Follow extends CoreEntity {
   @Field((type) => Number)
   @Column()
   followerId: number;
-
-  // @Field((type) => Boolean)
-  // @Column({ default: false })
-  // isChecked: boolean;
 }

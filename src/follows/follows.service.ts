@@ -191,24 +191,4 @@ export class FollowsService {
       return { ok: false, error: 'Could not unfollowed' };
     }
   }
-
-  // async acceptFollow(
-  //   user: User,
-  //   { id: followId }: AcceptFollowInput,
-  // ): Promise<AcceptFollowOutput> {
-  //   try {
-  //     const follow = await this.follows.findOne(followId);
-  //     if (!follow) {
-  //       return { ok: false, error: 'Relation not found' };
-  //     }
-  //     if (follow.followingId !== user.id) {
-  //       return { ok: false, error: 'Could not accept somebody elses follow' };
-  //     }
-  //     follow.isChecked = true;
-  //     await this.follows.save(follow);
-  //     return { ok: true };
-  //   } catch {
-  //     return { ok: false, error: 'Could not Accept' };
-  //   }
-  // }
 }
