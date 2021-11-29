@@ -3,8 +3,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Pagination } from 'src/common/common.pagination';
 import { PlaceUserRelation } from 'src/place-user-relations/entities/place-user-relation.entity';
 import { Repository } from 'typeorm';
+import { Category } from './entities/category.entity';
 import { Place } from './entities/place.entity';
 import { PlacesService } from './places.service';
+import { CategoryRepository } from './repositories/category.repository';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -17,12 +19,17 @@ const mockPagination = () => ({
   getResults: jest.fn(),
   getTotalPages: jest.fn(),
 });
+const mockCategoryRepository = () => ({
+  getOrCreate: jest.fn(),
+});
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('placesService', () => {
   let service: PlacesService;
   let pagination: Pagination;
+  let categoryRepository: CategoryRepository;
   let placesRepository: MockRepository<Place>;
   let relationsRepository: MockRepository<PlaceUserRelation>;
+  let categories: MockRepository<Category>;
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -36,15 +43,25 @@ describe('placesService', () => {
           useValue: mockRepository(),
         },
         {
+          provide: getRepositoryToken(Category),
+          useValue: mockRepository,
+        },
+        {
           provide: Pagination,
           useValue: mockPagination(),
+        },
+        {
+          provide: CategoryRepository,
+          useValue: mockCategoryRepository(),
         },
       ],
     }).compile();
     service = module.get<PlacesService>(PlacesService);
     pagination = module.get<Pagination>(Pagination);
+    categoryRepository = module.get<CategoryRepository>(CategoryRepository);
     placesRepository = module.get(getRepositoryToken(Place));
     relationsRepository = module.get(getRepositoryToken(PlaceUserRelation));
+    categories = module.get(getRepositoryToken(Category));
   });
   it('shoud be defined', () => {
     expect(service).toBeDefined();
@@ -100,17 +117,35 @@ describe('placesService', () => {
     const createPlaceArgs = {
       name: '',
       address: '',
+      categoryName: '',
+      coverImg: '',
+    };
+    const mockedCategory = {
+      id: 1,
+      name: createPlaceArgs.name,
+      slug: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     it('should create place', async () => {
       const place = {
         id: 1,
         name: createPlaceArgs.name,
         address: createPlaceArgs.address,
+        category: mockedCategory,
       };
       placesRepository.create.mockReturnValue(place);
+      jest
+        .spyOn(categoryRepository, 'getOrCreate')
+        .mockImplementation(async () => {
+          return mockedCategory;
+        });
       const result = await service.createPlace(createPlaceArgs);
       expect(placesRepository.create).toHaveBeenCalledTimes(1);
-      expect(placesRepository.create).toHaveBeenCalledWith(createPlaceArgs);
+      expect(placesRepository.create).toHaveBeenCalledWith({
+        name: createPlaceArgs.name,
+        address: createPlaceArgs.address,
+      });
       expect(placesRepository.save).toHaveBeenCalledTimes(1);
       expect(placesRepository.save).toHaveBeenCalledWith(place);
       expect(result).toEqual({ ok: true, place });

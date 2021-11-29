@@ -1,10 +1,13 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { create } from 'domain';
+import * as Pubsub from 'graphql-subscriptions';
+import { PUB_SUB } from 'src/common/common.constants';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Follow } from './entities/follow.entity';
 import { FollowsService } from './follows.service';
+
+jest.mock('graphql-subscriptions');
 
 const mockRepository = () => ({
   findOne: jest.fn(),
@@ -28,6 +31,10 @@ describe('FollowService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: mockRepository(),
+        },
+        {
+          provide: PUB_SUB,
+          useValue: PUB_SUB,
         },
         {
           provide: getRepositoryToken(Follow),
@@ -76,6 +83,7 @@ describe('FollowService', () => {
   describe('getFollowersInfo', () => {
     const authUser = {
       id: 1,
+      name: '',
       email: '',
       password: '',
       verified: false,
@@ -169,6 +177,7 @@ describe('FollowService', () => {
   describe('createFollow', () => {
     const authUser = {
       id: 1,
+      name: '',
       email: '',
       password: '',
       verified: false,
@@ -269,6 +278,7 @@ describe('FollowService', () => {
   describe('unFollow', () => {
     const authUser = {
       id: 1,
+      name: '',
       email: '',
       password: '',
       verified: false,

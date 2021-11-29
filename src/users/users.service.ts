@@ -112,10 +112,6 @@ export class UsersService {
         };
       }
       const token = this.jwtService.sign(user.id);
-      //jwt.sign({ id: user.id }, this.config.get('SECRET_KEY'));
-
-      //this.config.get() >>dependency injection
-      //process.env.SECRET_KEY, <<get config from /app.module 'ConfigModule'
       return {
         ok: true,
         token,
@@ -131,7 +127,6 @@ export class UsersService {
   async findById(id: number): Promise<UserProfileOutput> {
     try {
       const user = await this.users.findOneOrFail({ id });
-      //if failed, throw an error
       return {
         ok: true,
         user,
@@ -146,10 +141,6 @@ export class UsersService {
     { email, password, name, avatarUrl }: EditProfileInput,
   ): Promise<EditProfileOutput> {
     try {
-      //@BeforeUpdate for hashing password
-      //triggered when you updated a specific entity
-      // this.users.update(userId, { ...editProfileInput });
-      //not updating entity. sending query to the DB
       const user = await this.users.findOne(userId);
       if (email) {
         user.email = email;
@@ -245,7 +236,7 @@ export class UsersService {
       if (!place) {
         return { ok: false, error: 'Place not found' };
       }
-      //follow 관계 확인
+      //follow 관계 확인 >> count ㄹㅗ ㄷㅐ체
       const [_, isBidirectionalFollow] = await this.follows.findAndCount({
         where: [
           {

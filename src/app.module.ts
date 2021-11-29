@@ -19,6 +19,7 @@ import { FollowsModule } from './follows/follows.module';
 import { Suggestion } from './users/entities/suggestion.entity';
 import { CommonModule } from './common/common.module';
 import { CategoryRepository } from './places/repositories/category.repository';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -37,6 +38,9 @@ import { CategoryRepository } from './places/repositories/category.repository';
         MAILGUN_API_KEY: Joi.string().required(),
         MAILGUN_DOMAIN_NAME: Joi.string().required(),
         MAILGUN_FROM_EMAIL: Joi.string().required(),
+        AWS_ACCESS_KEY_ID: Joi.string().required(),
+        AWS_ACCESS_SECRET: Joi.string().required(),
+        BUCKET_NAME: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRoot({
@@ -88,6 +92,7 @@ import { CategoryRepository } from './places/repositories/category.repository';
     FollowsModule,
     CommonModule,
     CategoryRepository,
+    UploadsModule,
   ],
   controllers: [],
   providers: [],
