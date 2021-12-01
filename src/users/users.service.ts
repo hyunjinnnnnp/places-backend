@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getConnection, getRepository, Repository } from 'typeorm';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -31,6 +31,7 @@ import { Pagination } from 'src/common/common.pagination';
 import { NEW_PENDING_SUGGESTION, PUB_SUB } from 'src/common/common.constants';
 import { PubSub } from 'graphql-subscriptions';
 import { Place } from 'src/places/entities/place.entity';
+import { MyProfileOutput } from './dto/my-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -48,6 +49,40 @@ export class UsersService {
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
+  async myProfile({ id }: User): Promise<MyProfileOutput> {
+    try {
+      const user = await this.users
+        .createQueryBuilder('user')
+        .select([
+          'user.id AS id',
+          'user.email AS email',
+          'user.nickname AS nickname',
+          'user.verified AS verified',
+          'user.avatarUrl AS avatarUrl',
+        ])
+        .leftJoin('user.following', 'following')
+        .leftJoin('user.relations', 'relations')
+        .leftJoin('user.followers', 'followers')
+        .addSelect('COUNT(DISTINCT FOLLOWING) AS followingCount')
+        .addSelect('COUNT(DISTINCT RELATIONS) AS relationCount')
+        .addSelect('COUNT(DISTINCT FOLLOWERS) AS followersCount')
+        .where('user.id = :id', { id })
+        .groupBy('user.id')
+        .getRawOne();
+
+      console.log(user);
+      return {
+        ok: true,
+        user,
+        followingCount: null,
+        followersCount: null,
+        relationsCount: null,
+      };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+  //"User_following"."id" AS "User_following_id"
   async createAccount(
     createAccountInput: CreateAccountInput,
   ): Promise<CreateAccountOutput> {
@@ -62,16 +97,13 @@ export class UsersService {
         };
       }
       const nameExists = await this.users.findOne({
-        name: createAccountInput.name,
+        nickname: createAccountInput.nickname,
       });
       if (nameExists) {
         return {
           ok: false,
           error: 'There is a user with this name already',
         };
-      }
-      if (createAccountInput.avatarUrl) {
-        //avatar upload
       }
       const user = await this.users.save(
         this.users.create({ ...createAccountInput }),
@@ -138,7 +170,7 @@ export class UsersService {
 
   async editProfile(
     userId: number,
-    { email, password, name, avatarUrl }: EditProfileInput,
+    { email, password, nickname, avatarUrl }: EditProfileInput,
   ): Promise<EditProfileOutput> {
     try {
       const user = await this.users.findOne(userId);
@@ -153,11 +185,11 @@ export class UsersService {
       if (password) {
         user.password = password;
       }
-      if (name) {
-        user.name = name;
+      if (nickname) {
+        user.nickname = nickname;
       }
       if (avatarUrl) {
-        user.name = name;
+        user.avatarUrl = avatarUrl;
       }
       await this.users.save(user);
       return { ok: true };

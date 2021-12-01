@@ -27,6 +27,7 @@ import { VerifyEmailInput, VerifyEmailOutput } from './dto/verify-email.dto';
 import { Suggestion } from './entities/suggestion.entity';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { MyProfileOutput } from './dto/my-profile.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
@@ -35,10 +36,10 @@ export class UsersResolver {
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
-  @Query((returns) => User)
   @UseGuards(AuthGuard)
-  me(@AuthUser() authUser: User) {
-    return authUser;
+  @Query((returns) => MyProfileOutput)
+  me(@AuthUser() authUser: User): Promise<MyProfileOutput> {
+    return this.usersService.myProfile(authUser);
   }
 
   @Mutation((returns) => CreateAccountOutput)

@@ -20,7 +20,7 @@ export class User extends CoreEntity {
   @Field((type) => String)
   @Column({ unique: true })
   @IsString()
-  name: string;
+  nickname: string;
 
   @Field((type) => String)
   @Column({ select: false })
@@ -46,8 +46,6 @@ export class User extends CoreEntity {
 
   @Field((type) => [Follow], { nullable: true })
   @OneToMany((type) => Follow, (follow) => follow.follower, {
-    //팔로우 생성과 반대
-    //user가 follower로써 상대를 추가한다. >> 그 팔로우 내역을 following[]에 저장한다.
     nullable: true,
     onDelete: 'CASCADE',
   })
