@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getConnection, getRepository, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   CreateAccountInput,
   CreateAccountOutput,
@@ -32,6 +32,7 @@ import { NEW_PENDING_SUGGESTION, PUB_SUB } from 'src/common/common.constants';
 import { PubSub } from 'graphql-subscriptions';
 import { Place } from 'src/places/entities/place.entity';
 import { MyProfileOutput } from './dto/my-profile.dto';
+import { LogoutInput, LogoutOutput } from './dto/logout.dto';
 
 @Injectable()
 export class UsersService {
@@ -58,31 +59,28 @@ export class UsersService {
           'user.email AS email',
           'user.nickname AS nickname',
           'user.verified AS verified',
-          'user.avatarUrl AS avatarUrl',
+          'user.avatarUrl AS "avatarUrl"',
         ])
         .leftJoin('user.following', 'following')
         .leftJoin('user.relations', 'relations')
         .leftJoin('user.followers', 'followers')
-        .addSelect('COUNT(DISTINCT FOLLOWING) AS followingCount')
-        .addSelect('COUNT(DISTINCT RELATIONS) AS relationCount')
-        .addSelect('COUNT(DISTINCT FOLLOWERS) AS followersCount')
+        .addSelect('COUNT(DISTINCT FOLLOWING) AS "followingCount"')
+        .addSelect('COUNT(DISTINCT RELATIONS) AS "relationsCount"')
+        .addSelect('COUNT(DISTINCT FOLLOWERS) AS "followersCount"')
         .where('user.id = :id', { id })
         .groupBy('user.id')
         .getRawOne();
-
-      console.log(user);
       return {
         ok: true,
         user,
-        followingCount: null,
-        followersCount: null,
-        relationsCount: null,
+        followingCount: user.followingCount,
+        followersCount: user.followersCount,
+        relationsCount: user.relationsCount,
       };
     } catch {
       return { ok: false, error: 'Could not load' };
     }
   }
-  //"User_following"."id" AS "User_following_id"
   async createAccount(
     createAccountInput: CreateAccountInput,
   ): Promise<CreateAccountOutput> {
@@ -125,7 +123,6 @@ export class UsersService {
 
   async login({ email, password }: LoginInput): Promise<LoginOutput> {
     try {
-      //make a JWT and give it to the user
       const user = await this.users.findOne(
         { email },
         { select: ['id', 'password'] },
@@ -155,6 +152,19 @@ export class UsersService {
       };
     }
   }
+
+  // async logout({token}: LogoutInput): Promise<LogoutOutput>{
+  //   try{
+  //     if(!token){
+  //       return {ok:false, error: "Token not found"}
+  //     }
+
+  //   }catch{
+  //     return {
+  //       ok:false, error: "Could not logout"
+  //     }
+  //   }
+  // }
 
   async findById(id: number): Promise<UserProfileOutput> {
     try {

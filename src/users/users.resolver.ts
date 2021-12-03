@@ -28,6 +28,7 @@ import { Suggestion } from './entities/suggestion.entity';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { MyProfileOutput } from './dto/my-profile.dto';
+import { LogoutInput, LogoutOutput } from './dto/logout.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
@@ -38,7 +39,7 @@ export class UsersResolver {
 
   @UseGuards(AuthGuard)
   @Query((returns) => MyProfileOutput)
-  me(@AuthUser() authUser: User): Promise<MyProfileOutput> {
+  myProfile(@AuthUser() authUser: User): Promise<MyProfileOutput> {
     return this.usersService.myProfile(authUser);
   }
 
@@ -54,13 +55,18 @@ export class UsersResolver {
     return this.usersService.login(loginInput);
   }
 
-  @UseGuards(AuthGuard)
-  @Query((returns) => UserProfileOutput)
-  userProfile(
-    @Args() userProfileInput: UserProfileInput,
-  ): Promise<UserProfileOutput> {
-    return this.usersService.findById(userProfileInput.userId);
-  }
+  // @Mutation((returns) => LogoutOutput)
+  // logout(@Args('input') logoutInput: LogoutInput): Promise<LogoutOutput> {
+  //   return this.usersService.logout(logoutInput);
+  // }
+
+  // @UseGuards(AuthGuard)
+  // @Query((returns) => UserProfileOutput)
+  // userProfile(
+  //   @Args() userProfileInput: UserProfileInput,
+  // ): Promise<UserProfileOutput> {
+  //   return this.usersService.findById(userProfileInput.userId);
+  // }
 
   @UseGuards(AuthGuard)
   @Mutation((returns) => EditProfileOutput)
