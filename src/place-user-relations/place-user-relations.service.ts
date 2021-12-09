@@ -193,7 +193,7 @@ export class PlaceUserRelationsService {
           user,
         }),
       );
-      return { ok: true, relation: newRelation };
+      return { ok: true };
     } catch {
       return { ok: false, error: 'Could not create' };
     }

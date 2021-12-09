@@ -12,7 +12,4 @@ export class CreatePlaceUserRelationInput {
 }
 
 @ObjectType()
-export class CreatePlaceUserRelationOutput extends CoreOutput {
-  @Field((type) => PlaceUserRelation, { nullable: true })
-  relation?: PlaceUserRelation;
-}
+export class CreatePlaceUserRelationOutput extends CoreOutput {}

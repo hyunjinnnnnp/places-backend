@@ -153,19 +153,6 @@ export class UsersService {
     }
   }
 
-  // async logout({token}: LogoutInput): Promise<LogoutOutput>{
-  //   try{
-  //     if(!token){
-  //       return {ok:false, error: "Token not found"}
-  //     }
-
-  //   }catch{
-  //     return {
-  //       ok:false, error: "Could not logout"
-  //     }
-  //   }
-  // }
-
   async findById(id: number): Promise<UserProfileOutput> {
     try {
       const user = await this.users.findOneOrFail({ id });
@@ -180,11 +167,11 @@ export class UsersService {
 
   async editProfile(
     userId: number,
-    { email, password, nickname, avatarUrl }: EditProfileInput,
+    { email, nickname, avatarUrl }: EditProfileInput,
   ): Promise<EditProfileOutput> {
     try {
       const user = await this.users.findOne(userId);
-      if (email) {
+      if (email !== user.email) {
         user.email = email;
         user.verified = false;
         const verification = await this.verification.save(
@@ -192,13 +179,10 @@ export class UsersService {
         );
         this.mailService.sendVerificationEmail(user.email, verification.code);
       }
-      if (password) {
-        user.password = password;
-      }
-      if (nickname) {
+      if (nickname !== user.nickname) {
         user.nickname = nickname;
       }
-      if (avatarUrl) {
+      if (avatarUrl !== user.avatarUrl) {
         user.avatarUrl = avatarUrl;
       }
       await this.users.save(user);

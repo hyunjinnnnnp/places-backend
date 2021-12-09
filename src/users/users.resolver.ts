@@ -55,11 +55,6 @@ export class UsersResolver {
     return this.usersService.login(loginInput);
   }
 
-  // @Mutation((returns) => LogoutOutput)
-  // logout(@Args('input') logoutInput: LogoutInput): Promise<LogoutOutput> {
-  //   return this.usersService.logout(logoutInput);
-  // }
-
   // @UseGuards(AuthGuard)
   // @Query((returns) => UserProfileOutput)
   // userProfile(

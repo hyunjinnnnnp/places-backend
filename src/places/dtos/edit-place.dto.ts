@@ -10,7 +10,7 @@ import { Place } from '../entities/place.entity';
 
 @InputType()
 export class EditPlaceInput extends PartialType(
-  PickType(Place, ['name', 'address', 'coverImg']),
+  PickType(Place, ['name', 'address']),
 ) {
   @Field((type) => Number)
   placeId: number;

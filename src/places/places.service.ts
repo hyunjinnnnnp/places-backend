@@ -99,14 +99,19 @@ export class PlacesService {
       const place = await this.places.create({
         name: createPlaceInput.name,
         address: createPlaceInput.address,
+        phone: createPlaceInput.phone,
+        url: createPlaceInput.url,
+        lat: createPlaceInput.lat,
+        lng: createPlaceInput.lng,
       });
-      const category = await this.categoryRepository.getOrCreate(
-        createPlaceInput.categoryName,
-        createPlaceInput.coverImg,
-      );
-      place.category = category;
+      if (createPlaceInput.categoryName) {
+        const category = await this.categoryRepository.getOrCreate(
+          createPlaceInput.categoryName,
+        );
+        place.category = category;
+      }
       await this.places.save(place);
-      return { ok: true, place };
+      return { ok: true, placeId: place.id };
     } catch {
       return { ok: false, error: 'Could not create' };
     }
@@ -115,7 +120,6 @@ export class PlacesService {
     placeId,
     name,
     address,
-    coverImg,
   }: EditPlaceInput): Promise<EditPlaceOutput> {
     try {
       //to do: auto edit
@@ -128,7 +132,6 @@ export class PlacesService {
         id: placeId,
         address,
         name,
-        coverImg,
       });
       return {
         ok: true,

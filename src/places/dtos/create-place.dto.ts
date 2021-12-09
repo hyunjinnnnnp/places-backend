@@ -1,18 +1,22 @@
-import { Field, InputType, ObjectType, PickType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, OmitType } from '@nestjs/graphql';
 import { CoreOutput } from 'src/common/dtos/output.dto';
 import { Place } from '../entities/place.entity';
 
 @InputType()
-export class CreatePlaceInput extends PickType(Place, ['name', 'address']) {
-  @Field((type) => String, { nullable: true })
-  coverImg?: string;
-
+export class CreatePlaceInput extends OmitType(Place, [
+  'relations',
+  'categoryId',
+  'suggestions',
+  'id',
+  'createdAt',
+  'updatedAt',
+]) {
   @Field((type) => String, { nullable: true })
   categoryName?: string;
 }
 
 @ObjectType()
 export class CreatePlaceOutput extends CoreOutput {
-  @Field((type) => Place, { nullable: true })
-  place?: Place;
+  @Field((type) => Number, { nullable: true })
+  placeId?: number;
 }

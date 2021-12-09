@@ -16,11 +16,15 @@
 - suggestion entity [x]
 - get, send, delete suggestion [x]
 
-**_ 🤔 _**
-
-- modify pagination by case 1.map 2.paginated
-
   **_ subscription _**
 
 - Pending Follows [x]
 - Pending Suggestions [x]
+
+**_ 🤔 _**
+
+- modify pagination by case 1.map 2.paginated
+- edit password (separation from editProfile)
+- password minlength
+- logout mutation is necessary?
+- auto deletion (avatarUrl)
