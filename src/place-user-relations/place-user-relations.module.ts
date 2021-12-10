@@ -7,10 +7,17 @@ import { User } from 'src/users/entities/user.entity';
 import { Place } from 'src/places/entities/place.entity';
 import { Pagination } from 'src/common/common.pagination';
 import { Category } from 'src/places/entities/category.entity';
+import { CategoryRepository } from 'src/places/repositories/category.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PlaceUserRelation, User, Place, Category]),
+    TypeOrmModule.forFeature([
+      PlaceUserRelation,
+      User,
+      Place,
+      Category,
+      CategoryRepository,
+    ]),
   ],
   providers: [
     PlaceUserRelationsService,

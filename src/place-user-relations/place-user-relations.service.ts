@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Pagination } from 'src/common/common.pagination';
 import { Category } from 'src/places/entities/category.entity';
 import { Place } from 'src/places/entities/place.entity';
+import { CategoryRepository } from 'src/places/repositories/category.repository';
 import { User } from 'src/users/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import {
@@ -48,6 +49,7 @@ export class PlaceUserRelationsService {
     @InjectRepository(Place) private readonly places: Repository<Place>,
     @InjectRepository(Category)
     private readonly paginate: Pagination,
+    private readonly categoryRepository: CategoryRepository,
   ) {}
 
   async getMyPlaceRelations(
@@ -172,25 +174,41 @@ export class PlaceUserRelationsService {
     createPlaceUserRelationInput: CreatePlaceUserRelationInput,
   ): Promise<CreatePlaceUserRelationOutput> {
     try {
-      const { placeId } = createPlaceUserRelationInput;
-      const place = await this.places.findOne(placeId);
+      let place: Place = await this.places.findOne({
+        kakaoPlaceId: createPlaceUserRelationInput.kakaoPlaceId,
+      });
+      // if !exists create place
       if (!place) {
-        return {
-          ok: false,
-          error: 'Place id not found',
-        };
+        const newPlace = await this.places.create({
+          kakaoPlaceId: createPlaceUserRelationInput.kakaoPlaceId,
+          name: createPlaceUserRelationInput.name,
+          address: createPlaceUserRelationInput.address,
+          phone: createPlaceUserRelationInput.phone,
+          url: createPlaceUserRelationInput.url,
+          lat: createPlaceUserRelationInput.lat,
+          lng: createPlaceUserRelationInput.lng,
+        });
+        place = newPlace;
+        if (createPlaceUserRelationInput.categoryName) {
+          const category = await this.categoryRepository.getOrCreate(
+            createPlaceUserRelationInput.categoryName,
+          );
+          place.category = category;
+        }
+        await this.places.save(place);
       }
       const relation = await this.placeUserRelations.findOne({
         userId: user.id,
-        placeId,
+        placeId: place.id,
       });
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
-      const newRelation = await this.placeUserRelations.save(
+      await this.placeUserRelations.save(
         this.placeUserRelations.create({
-          ...createPlaceUserRelationInput,
+          place,
           user,
+          memo: createPlaceUserRelationInput.memo,
         }),
       );
       return { ok: true };
@@ -199,6 +217,7 @@ export class PlaceUserRelationsService {
     }
   }
 
+  //edit just my relations - memo, isLiked, isVisited
   async editPlaceUserRelation(
     authUser: User,
     editPlaceUserRelationInput: EditPlaceUserRelationInput,
@@ -224,6 +243,7 @@ export class PlaceUserRelationsService {
     }
   }
 
+  //if there is no other people is having relations with the place ? delete place also
   async deletePlaceUserRelation(
     user: User,
     { relationId }: DeletePlaceUserRelationInput,
