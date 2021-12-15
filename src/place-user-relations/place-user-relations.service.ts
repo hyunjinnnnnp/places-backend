@@ -14,18 +14,20 @@ import {
   DeletePlaceUserRelationInput,
   DeletePlaceUserRelationOutput,
 } from './dtos/delete-place-user-relation.dto';
+import { EditIsLikedInput, EditIsLikedOutput } from './dtos/edit-is-liked.dto';
 import {
-  EditPlaceUserRelationInput,
-  EditPlaceUserRelationOutput,
-} from './dtos/edit-place-user-relation.dto';
+  EditIsVisitedInput,
+  EditIsVisitedOutput,
+} from './dtos/edit-is-visited.dto';
+import { EditMemoInput, EditMemoOutput } from './dtos/edit-memo.dto';
 import {
   FindMyPlacesByMemoInput,
   FindMyPlacesByMemoOutput,
 } from './dtos/find-place-user-relations-by-memo.dto';
 import {
-  GetMyPlaceRelationsInput,
-  GetMyPlaceRelationsOutput,
-} from './dtos/get-my-place-relations.dto';
+  GetMyPlaceRelationsPaginatedInput,
+  GetMyPlaceRelationsPaginatedOutput,
+} from './dtos/get-my-place-relations-paginated.dto';
 import {
   GetPlaceUserRelationDetailInput,
   GetPlaceUserRelationDetailOutput,
@@ -52,10 +54,22 @@ export class PlaceUserRelationsService {
     private readonly categoryRepository: CategoryRepository,
   ) {}
 
-  async getMyPlaceRelations(
+  async getMyPlaceRelations(user: User) {
+    try {
+      const relations = await this.placeUserRelations.find({
+        where: { userId: user.id },
+        relations: ['place'],
+      });
+      return { ok: true, relations };
+    } catch {
+      return { ok: false, error: 'Could not load' };
+    }
+  }
+
+  async getMyPlaceRelationsPaginated(
     user: User,
-    { page }: GetMyPlaceRelationsInput,
-  ): Promise<GetMyPlaceRelationsOutput> {
+    { page }: GetMyPlaceRelationsPaginatedInput,
+  ): Promise<GetMyPlaceRelationsPaginatedOutput> {
     try {
       const [relations, totalResults] = await this.paginate.getResults(
         this.placeUserRelations,
@@ -204,65 +218,114 @@ export class PlaceUserRelationsService {
       if (relation) {
         return { ok: false, error: 'relation already exists' };
       }
-      await this.placeUserRelations.save(
+      const newRelation = await this.placeUserRelations.save(
         this.placeUserRelations.create({
           place,
           user,
+          kakaoPlaceId: place.kakaoPlaceId,
           memo: createPlaceUserRelationInput.memo,
         }),
       );
-      return { ok: true };
+      return { ok: true, relation: newRelation };
     } catch {
       return { ok: false, error: 'Could not create' };
     }
   }
 
-  //edit just my relations - memo, isLiked, isVisited
-  async editPlaceUserRelation(
+  async editIsLiked(
     authUser: User,
-    editPlaceUserRelationInput: EditPlaceUserRelationInput,
-  ): Promise<EditPlaceUserRelationOutput> {
+    { kakaoPlaceId, isLiked }: EditIsLikedInput,
+  ): Promise<EditIsLikedOutput> {
     try {
-      const { relationId } = editPlaceUserRelationInput;
-      const relation = await this.placeUserRelations.findOne(relationId);
+      const relation = await this.placeUserRelations.findOne({
+        userId: authUser.id,
+        kakaoPlaceId,
+      });
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
-      if (authUser.id !== relation.userId) {
-        return { ok: false, error: "Could not edit somebody else's relation" };
+      if (typeof isLiked === 'boolean') {
+        await this.placeUserRelations.save({
+          ...relation,
+          isLiked,
+        });
       }
-      await this.placeUserRelations.save({
-        id: relationId,
-        ...editPlaceUserRelationInput,
-      });
       return {
         ok: true,
+        relationId: relation.id,
       };
     } catch {
       return { ok: false, error: 'Could not edit' };
     }
   }
 
-  //if there is no other people is having relations with the place ? delete place also
-  async deletePlaceUserRelation(
-    user: User,
-    { relationId }: DeletePlaceUserRelationInput,
-  ): Promise<DeletePlaceUserRelationOutput> {
-    //if place doesn't exist anymore ?
-    //should notice, then delete
+  async editIsVisited(
+    authUser: User,
+    { kakaoPlaceId, isVisited }: EditIsVisitedInput,
+  ): Promise<EditIsVisitedOutput> {
     try {
-      const relation = await this.placeUserRelations.findOne(relationId);
+      const relation = await this.placeUserRelations.findOne({
+        userId: authUser.id,
+        kakaoPlaceId,
+      });
       if (!relation) {
         return { ok: false, error: 'Relation not found' };
       }
-      if (relation.userId !== user.id) {
-        return {
-          ok: false,
-          error: "cannot delete somebodyelse's relation",
-        };
+      if (typeof isVisited === 'boolean') {
+        await this.placeUserRelations.save({
+          ...relation,
+          isVisited,
+        });
       }
-      await this.placeUserRelations.delete(relationId);
+      return {
+        ok: true,
+        relationId: relation.id,
+      };
+    } catch {
+      return { ok: false, error: 'Could not edit' };
+    }
+  }
 
+  async editMemo(
+    authUser: User,
+    { kakaoPlaceId, memo }: EditMemoInput,
+  ): Promise<EditMemoOutput> {
+    try {
+      const relation = await this.placeUserRelations.findOne({
+        userId: authUser.id,
+        kakaoPlaceId,
+      });
+      if (!relation) {
+        return { ok: false, error: 'Relation not found' };
+      }
+      if (memo) {
+        await this.placeUserRelations.save({
+          ...relation,
+          memo,
+        });
+      }
+      return {
+        ok: true,
+        relationId: relation.id,
+      };
+    } catch {
+      return { ok: false, error: 'Could not edit' };
+    }
+  }
+
+  async deletePlaceUserRelation(
+    user: User,
+    { kakaoPlaceId }: DeletePlaceUserRelationInput,
+  ): Promise<DeletePlaceUserRelationOutput> {
+    try {
+      const relation = await this.placeUserRelations.findOne({
+        userId: user.id,
+        kakaoPlaceId,
+      });
+      if (!relation) {
+        return { ok: false, error: 'Relation not found' };
+      }
+      await this.placeUserRelations.delete(relation.id);
       return { ok: true };
     } catch {
       return { ok: false, error: 'Could not delete' };

@@ -4,7 +4,7 @@ import { CoreOutput } from 'src/common/dtos/output.dto';
 @InputType()
 export class DeletePlaceUserRelationInput {
   @Field((type) => Number)
-  relationId: number;
+  kakaoPlaceId: number;
 }
 
 @ObjectType()

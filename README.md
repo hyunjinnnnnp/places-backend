@@ -27,4 +27,4 @@
 - edit password (separation from editProfile)
 - password minlength
 - logout mutation is necessary?
-- auto deletion (avatarUrl)
+- auto deletion (avatarUrl, place with no relations or suggestions)

@@ -10,10 +10,10 @@ import { Category } from './category.entity';
 @ObjectType()
 @Entity()
 export class Place extends CoreEntity {
-  @Field((type) => Number, { nullable: true })
-  @Column({ nullable: true })
+  @Field((type) => Number)
+  @Column()
   @IsNumber()
-  kakaoPlaceId?: number;
+  kakaoPlaceId: number;
 
   @Field((type) => String)
   @Column()

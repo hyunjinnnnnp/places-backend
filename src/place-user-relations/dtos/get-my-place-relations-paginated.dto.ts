@@ -1,9 +1,15 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { CoreOutput } from 'src/common/dtos/output.dto';
+import {
+  PaginationInput,
+  PaginationOutput,
+} from 'src/common/dtos/pagination.dto';
 import { PlaceUserRelation } from '../entities/place-user-relation.entity';
 
+@InputType()
+export class GetMyPlaceRelationsPaginatedInput extends PaginationInput {}
+
 @ObjectType()
-export class GetMyPlaceRelationsOutput extends CoreOutput {
+export class GetMyPlaceRelationsPaginatedOutput extends PaginationOutput {
   @Field((type) => [PlaceUserRelation], { nullable: true })
   relations?: PlaceUserRelation[];
 }

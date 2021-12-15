@@ -11,18 +11,21 @@ import {
   DeletePlaceUserRelationInput,
   DeletePlaceUserRelationOutput,
 } from './dtos/delete-place-user-relation.dto';
+import { EditIsLikedInput, EditIsLikedOutput } from './dtos/edit-is-liked.dto';
 import {
-  EditPlaceUserRelationInput,
-  EditPlaceUserRelationOutput,
-} from './dtos/edit-place-user-relation.dto';
+  EditIsVisitedInput,
+  EditIsVisitedOutput,
+} from './dtos/edit-is-visited.dto';
+import { EditMemoInput, EditMemoOutput } from './dtos/edit-memo.dto';
 import {
   FindMyPlacesByMemoInput,
   FindMyPlacesByMemoOutput,
 } from './dtos/find-place-user-relations-by-memo.dto';
 import {
-  GetMyPlaceRelationsInput,
-  GetMyPlaceRelationsOutput,
-} from './dtos/get-my-place-relations.dto';
+  GetMyPlaceRelationsPaginatedInput,
+  GetMyPlaceRelationsPaginatedOutput,
+} from './dtos/get-my-place-relations-paginated.dto';
+import { GetMyPlaceRelationsOutput } from './dtos/get-my-place-relations.dto';
 import {
   GetPlaceUserRelationDetailInput,
   GetPlaceUserRelationDetailOutput,
@@ -48,11 +51,20 @@ export class PlaceUserRelationsResolver {
   @Query((returns) => GetMyPlaceRelationsOutput)
   getMyPlaceRelations(
     @AuthUser() user: User,
-    @Args('input') getMyPlaceRelationsInput: GetMyPlaceRelationsInput,
   ): Promise<GetMyPlaceRelationsOutput> {
-    return this.placeUserRelationsService.getMyPlaceRelations(
+    return this.placeUserRelationsService.getMyPlaceRelations(user);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query((returns) => GetMyPlaceRelationsPaginatedOutput)
+  getMyPlaceRelationsPaginated(
+    @AuthUser() user: User,
+    @Args('input')
+    getMyPlaceRelationsPaginatedInput: GetMyPlaceRelationsPaginatedInput,
+  ): Promise<GetMyPlaceRelationsPaginatedOutput> {
+    return this.placeUserRelationsService.getMyPlaceRelationsPaginated(
       user,
-      getMyPlaceRelationsInput,
+      getMyPlaceRelationsPaginatedInput,
     );
   }
 
@@ -110,15 +122,36 @@ export class PlaceUserRelationsResolver {
   }
 
   @UseGuards(AuthGuard)
-  @Mutation((returns) => EditPlaceUserRelationOutput)
-  editPlaceUserRelation(
+  @Mutation((returns) => EditIsLikedOutput)
+  editIsLiked(
     @AuthUser() authUser: User,
-    @Args('input') editPlaceUserRelationInput: EditPlaceUserRelationInput,
-  ): Promise<EditPlaceUserRelationOutput> {
-    return this.placeUserRelationsService.editPlaceUserRelation(
+    @Args('input') editIsLikedInput: EditIsLikedInput,
+  ): Promise<EditIsLikedOutput> {
+    return this.placeUserRelationsService.editIsLiked(
       authUser,
-      editPlaceUserRelationInput,
+      editIsLikedInput,
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => EditIsVisitedOutput)
+  editIsVisited(
+    @AuthUser() authUser: User,
+    @Args('input') editIsVisitedInput: EditIsVisitedInput,
+  ): Promise<EditIsVisitedOutput> {
+    return this.placeUserRelationsService.editIsVisited(
+      authUser,
+      editIsVisitedInput,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation((returns) => EditMemoOutput)
+  editMemo(
+    @AuthUser() authUser: User,
+    @Args('input') editMemoInput: EditMemoInput,
+  ): Promise<EditMemoOutput> {
+    return this.placeUserRelationsService.editMemo(authUser, editMemoInput);
   }
 
   @UseGuards(AuthGuard)
